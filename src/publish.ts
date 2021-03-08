@@ -71,7 +71,11 @@ export async function publish(
       .map((l) => `- ${l}`)
       .join('\n')
     if (dryRun) console.log('Dry run: yes')
-    console.log('Changelog (you can edit this via gitlab later):')
+    console.log(
+      'Changelog (you can edit this via',
+      info.github ? 'github' : 'gitlab',
+      'later):',
+    )
     console.log(changelog)
 
     const res = await question(rl, 'Is this okay? [y/N] ')
