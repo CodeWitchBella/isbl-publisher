@@ -17,6 +17,7 @@ export async function publish(
 
   const pkgJsonFile = path.join(workdir, 'package.json')
   const oldPkgJson = fs.readFileSync(pkgJsonFile, 'utf8')
+  const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
   const repoUrl = env['npm_package_repository_url']
   if (!repoUrl) {
@@ -121,7 +122,12 @@ export async function publish(
       }
     }
 
-    cmd('yarn', ['publish', '--non-interactive', '--no-git-tag-version'])
+    cmd(
+      'yarn',
+      ['publish', '--non-interactive', '--no-git-tag-version'].concat(
+        isPackageDefinitelyPublic ? ['--access', 'public'] : [],
+      ),
+    )
   } finally {
     rl.close()
   }

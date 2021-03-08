@@ -1,6 +1,6 @@
 {
   "name": "@isbl/publisher",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Simplifies creating git(lab|hub) releases and publishes to npm",
   "main": "index.js",
   "repository": {
@@ -23,7 +23,6 @@
   "type": "module",
   "scripts": {
     "build": "rm vite.config.ts.js ; vite build",
-    "prepublishOnly": "yarn build && ./index.js prepublishOnly",
     "publish:npm": "yarn build && ./index.js publish $HOME/.avocode/token",
     "publish:npm:nobuild": "./index.js publish $HOME/.avocode/token",
     "lint": "eslint src --ext ts",
