@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "es2020",
+    "lib": ["es2020"],
+    "module": "commonjs",
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+
+    "strict": true,
+
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
