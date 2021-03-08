@@ -6,11 +6,11 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/CodeWitchBella/npm-publisher?style=for-the-badge)
 [![GitHub Release Date](https://img.shields.io/github/release-date/CodeWitchBella/npm-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/npm-publisher/releases)
 
-Automates release process. Creating github releases from commit messages and
+Automates release process. Creates github releases from commit messages and
 attaches correct labels. Works both with self-hosted gitlab instances and github.com.
 
 You can see it in action on [release](https://github.com/CodeWitchBella/npm-publisher/releases)
-of this package. It currently assumes that you use npm classic, but it shouldn't
+of this package. It currently assumes that you use yarn classic, but it shouldn't
 be difficult to adjust for other package managers too.
 
 ## How to setup (GitHub)
