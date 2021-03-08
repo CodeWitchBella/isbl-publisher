@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import fs from 'fs'
 
+const __dirname = path.dirname(import.meta.url.replace('file://', ''))
+
 const pkg: typeof import('./package.json') = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'),
 )
@@ -11,7 +13,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     lib: {
-      entry: path.resolve(__dirname, 'src/publisher.tsx'),
+      entry: path.resolve(__dirname, 'src/publisher.ts'),
       formats: ['es'],
     },
     rollupOptions: {
@@ -20,6 +22,12 @@ export default defineConfig({
         ...Object.keys(
           'peerDependencies' in pkg ? pkg['peerDependencies'] : {},
         ),
+        'url',
+        'path',
+        'child_process',
+        'readline',
+        'util',
+        'fs',
       ],
     },
   },

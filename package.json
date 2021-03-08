@@ -1,9 +1,12 @@
 {
   "name": "@isbl/publisher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simplifies creating git(lab|hub) releases and publishes to npm",
   "main": "index.js",
-  "repository": "https://github.com/CodeWitchBella/npm-publisher.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CodeWitchBella/npm-publisher.git"
+  },
   "author": "Isabella Skořepová <isabella@skorepova.info>",
   "license": "MIT",
   "private": false,
@@ -20,16 +23,23 @@
   "type": "module",
   "scripts": {
     "build": "rm vite.config.ts.js ; vite build",
-    "prepublishOnly": "yarn build && node --type module ./index.js",
-    "lint": "eslint src --ext ts"
+    "prepublishOnly": "yarn build && ./index.js prepublishOnly",
+    "publish:npm": "yarn build && ./index.js publish $HOME/.avocode/token",
+    "publish:npm:nobuild": "./index.js publish $HOME/.avocode/token",
+    "lint": "eslint src --ext ts",
+    "test": "echo $HOME"
   },
   "devDependencies": {
     "@types/node": "^14.14.32",
+    "@types/node-fetch": "^2.5.8",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "prettier": "^2.2.1",
     "typescript": "^4.2.3",
     "vite": "^2.0.5"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
   }
 }
