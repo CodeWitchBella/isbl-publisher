@@ -24,8 +24,8 @@
   "scripts": {
     "build": "rm vite.config.ts.js ; vite build",
     "prepublishOnly": "yarn build && ./index.js prepublishOnly",
-    "publish:npm": "yarn build && ./index.js publish $HOME/.avocode/token",
-    "publish:npm:nobuild": "./index.js publish $HOME/.avocode/token",
+    "publish:npm": "yarn build && ./index.js publish",
+    "publish:npm:nobuild": "./index.js publish",
     "lint": "eslint src --ext ts",
     "test": "echo $HOME"
   },
