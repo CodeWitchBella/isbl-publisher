@@ -66,3 +66,18 @@ API.
 
 Run `yarn publish:npm`. You can also run `yarn publish:npm --dry-run` to see
 commands which would be executed.
+
+Example output
+
+```
+Current version: 0.1.5
+New version: 0.1.6
+Creating release
+  name: Version 0.1.6
+  tag: v0.1.6
+  lastTag: v0.1.5
+Changelog (you can edit this via gitlab later):
+- b945183 Improve readme
+- cfdf42d fix typo
+Is this okay? [y/N] _
+```
