@@ -1,10 +1,5 @@
+import { expectedError } from './expected-error'
 import { publish } from './publish'
-
-function expectedError(msg: string) {
-  const err = new Error(msg)
-  ;(err as any).expected = true
-  return err
-}
 
 const commands: {
   [key: string]: (
