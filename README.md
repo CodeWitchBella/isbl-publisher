@@ -1,4 +1,4 @@
-# @isbl/published
+# @isbl/publisher
 
 [npm](https://www.npmjs.com/package/@isbl/publisher)
 
