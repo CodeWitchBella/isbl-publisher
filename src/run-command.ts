@@ -61,7 +61,10 @@ export function createRunner({
     })
     if (!allowErr) {
       if (res.stderr) {
-        throw `${c} ${args[0]} because stderr is not empty`
+        if (verbose) {
+          console.log(res.stderr)
+        }
+        throw `${c} ${args[0]} failed because stderr is not empty`
       }
       if (res.status !== 0) {
         throw `${c} ${args[0]} failed`
