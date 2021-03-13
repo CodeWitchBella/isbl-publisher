@@ -198,6 +198,9 @@ function patchVersion(
 ) {
   if (oldVersion === newVersion) return oldPackageJson
 
+  const oldParsed = JSON.parse(oldPackageJson)
+  if (oldParsed['version'] === newVersion) return oldPackageJson
+
   const newPkgJson = oldPackageJson.replace(
     `"version": ${JSON.stringify(oldVersion)}`,
     `"version": ${JSON.stringify(newVersion)}`,
