@@ -99,7 +99,7 @@ export async function publish(
       runner.cmd('git', ['commit', '-am', name])
       runner.cmd('git', ['push'])
     }
-    const ref = runner.cmdOut('git', ['rev-parse', 'HEAD'])
+    const ref = runner.cmdOut('git', ['rev-parse', 'HEAD']).trim()
 
     await createRelease({
       runner,
