@@ -38,9 +38,12 @@ export function createRunner({
   function cmdOut(c: string, args: readonly string[]) {
     const res = cp.spawnSync(c, args, {
       encoding: 'utf-8',
-      stdio: [null, 'pipe', 'inherit'],
+      stdio: [null, 'pipe', 'pipe'],
       cwd,
     })
+    if (res.stderr) {
+      throw `${c} ${args[0]} because stderr is not empty`
+    }
     if (res.status !== 0) {
       throw `${c} ${args[0]} failed`
     }
