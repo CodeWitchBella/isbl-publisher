@@ -182,7 +182,12 @@ export async function publish(
   }
 
   function extractTag(version: string) {
-    return version.split('-')[1]?.replace(/[^a-z]/g, '') || 'latest'
+    return (
+      version
+        .split('-')[1]
+        ?.split(/[^a-z]/i)?.[0]
+        ?.toLowerCase() || 'latest'
+    )
   }
 
   function patchVersion(
