@@ -9,7 +9,7 @@ import('./dist/publisher.es.js')
       let code = 1
       if (e.expected) {
         console.error(e.message)
-        if (e.code) code = e.code
+        if (typeof e.code === 'number') code = e.code
       } else {
         console.error(e)
       }

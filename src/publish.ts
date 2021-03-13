@@ -46,7 +46,7 @@ export async function publish(
       } else if (!ci) {
         throw new Error('rl is falsy, but ci is falsy too!?')
       } else {
-        throw expectedError('Old version and new version are the same', 2)
+        throw expectedError('Old version and new version are the same', 0)
       }
     }
 
@@ -97,7 +97,7 @@ export async function publish(
     const res = rl ? await question(rl, 'Is this okay? [y/N] ') : 'N'
     rl?.close()
     if (!ci && res !== 'y') {
-      throw 'stopping.'
+      throw expectedError('stopping.', 0)
     }
 
     if (oldPkgJson !== newPkgJson) {
