@@ -1,6 +1,35 @@
 import fetch from 'node-fetch'
 import { URL } from 'url'
+import * as fs from 'fs'
+import { promisify } from 'util'
 import { expectedError } from './expected-error'
+
+async function readGitlabToken({
+  tokenFile,
+  env,
+}: {
+  tokenFile: string | undefined
+  env: typeof process.env
+}): Promise<string> {
+  let token: string | null = null
+  if (env['CI_JOB_TOKEN']) {
+    token = env['CI_JOB_TOKEN']
+  } else if (!tokenFile) {
+    throw 'You must specify token file as first argument for gitlab repos.'
+  } else {
+    try {
+      token = await promisify(fs.readFile)(tokenFile, 'utf-8')
+      token = token.trim()
+    } catch (e) {
+      throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
+    }
+
+    if (!token) {
+      throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
+    }
+  }
+  return token
+}
 
 export async function getRepoInfo({
   tokenFile,
@@ -15,19 +44,7 @@ export async function getRepoInfo({
   const github = new URL(repoUrl).hostname === 'github.com'
 
   if (!github) {
-    if (!tokenFile) {
-      throw 'You must specify token file as first argument for gitlab repos.'
-    }
-
-    let token: string
-    try {
-      token = fs.readFileSync(tokenFile, 'utf-8').trim()
-    } catch (e) {
-      throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
-    }
-    if (!token) {
-      throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
-    }
+    const token = await readGitlabToken({ tokenFile, env })
 
     const headers = {
       'Content-Type': 'application/json',
