@@ -16,6 +16,7 @@ export async function publish(
     dryRun: argv.includes('--dry-run'),
     env,
     cwd: workdir,
+    verbose: argv.includes('--verbose'),
   })
 
   const dirty = runner.cmdOut('git', ['status', '--porcelain'])

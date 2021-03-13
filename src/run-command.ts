@@ -4,15 +4,23 @@ export function createRunner({
   dryRun,
   env,
   cwd,
+  verbose,
 }: {
   dryRun: boolean
   env: typeof process.env
   cwd: string
+  verbose: boolean
 }) {
+  function print(c: string, args: readonly string[]) {
+    console.log(c, args.map((a) => `'${a}'`).join(' '))
+  }
   function cmd(c: string, args: readonly string[]) {
     if (dryRun) {
-      console.log(c, args.map((a) => `'${a}'`).join(' '))
+      print(c, args)
     } else {
+      if (verbose) {
+        print(c, args)
+      }
       const res = cp.spawnSync(c, args, {
         stdio: 'inherit',
         cwd,
@@ -28,6 +36,9 @@ export function createRunner({
   }
 
   function cmdCheck(c: string, args: readonly string[]) {
+    if (verbose) {
+      print(c, args)
+    }
     const res = cp.spawnSync(c, args, {
       stdio: [null, null, null],
       cwd,
@@ -36,6 +47,9 @@ export function createRunner({
   }
 
   function cmdOut(c: string, args: readonly string[]) {
+    if (verbose) {
+      print(c, args)
+    }
     const res = cp.spawnSync(c, args, {
       encoding: 'utf-8',
       stdio: [null, 'pipe', 'pipe'],
@@ -49,5 +63,5 @@ export function createRunner({
     }
     return res.stdout
   }
-  return { cmd, cmdCheck, cmdOut, dryRun }
+  return { cmd, cmdCheck, cmdOut, dryRun, verbose }
 }
