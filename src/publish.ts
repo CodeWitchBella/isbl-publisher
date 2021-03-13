@@ -28,7 +28,7 @@ export async function publish(
   const oldPkgJson = fs.readFileSync(pkgJsonFile, 'utf8')
   const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
-  const info = await getRepoInfo({ tokenFile: argv[0], env })
+  const info = await getRepoInfo({ tokenFile: argv[0], env, ci })
   if (info.github && ci) {
     throw expectedError('CI is only supported for gitlab (for now)')
   }
