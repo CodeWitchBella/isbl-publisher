@@ -180,32 +180,32 @@ export async function publish(
       ]) || runner.cmdOut('npm', ['show', packageName, 'version'])
     return { oldVersion, newVersion }
   }
+}
 
-  function extractTag(version: string) {
-    return (
-      version
-        .split('-')[1]
-        ?.split(/[^a-z]/i)?.[0]
-        ?.toLowerCase() || 'latest'
-    )
+function extractTag(version: string) {
+  return (
+    version
+      .split('-')[1]
+      ?.split(/[^a-z]/i)?.[0]
+      ?.toLowerCase() || 'latest'
+  )
+}
+
+function patchVersion(
+  oldPackageJson: string,
+  oldVersion: string,
+  newVersion: string,
+) {
+  if (oldVersion === newVersion) return oldPackageJson
+
+  const newPkgJson = oldPackageJson.replace(
+    `"version": ${JSON.stringify(oldVersion)}`,
+    `"version": ${JSON.stringify(newVersion)}`,
+  )
+
+  if (newPkgJson === oldPackageJson) {
+    throw 'Cannot patch package.json'
   }
 
-  function patchVersion(
-    oldPackageJson: string,
-    oldVersion: string,
-    newVersion: string,
-  ) {
-    if (oldVersion === newVersion) return oldPackageJson
-
-    const newPkgJson = oldPkgJson.replace(
-      `"version": ${JSON.stringify(oldVersion)}`,
-      `"version": ${JSON.stringify(newVersion)}`,
-    )
-
-    if (newPkgJson === oldPkgJson) {
-      throw 'Cannot patch package.json'
-    }
-
-    return newPkgJson
-  }
+  return newPkgJson
 }
