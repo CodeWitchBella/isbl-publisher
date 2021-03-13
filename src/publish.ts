@@ -35,19 +35,9 @@ export async function publish(
 
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
-    let { newVersion, oldVersion } = await getVersions()
+    let { newVersion, oldVersion } = await getVersions(rl)
     if (newVersion === oldVersion || (!ci && !oldVersion)) {
-      if (rl) {
-        console.log('Current version:', oldVersion)
-        newVersion = await question(rl, 'New version: ')
-        if (!/^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/.test(newVersion)) {
-          throw 'Invalid version: ' + newVersion
-        }
-      } else if (!ci) {
-        throw new Error('rl is falsy, but ci is falsy too!?')
-      } else {
-        throw expectedError('Old version and new version are the same', 0)
-      }
+      throw expectedError('Old version and new version are the same', 0)
     }
 
     const tag = `v${newVersion}`
@@ -143,11 +133,23 @@ export async function publish(
     })
   }
 
-  async function getVersions(): Promise<{
+  async function getVersions(
+    rl: readline.Interface | null,
+  ): Promise<{
     oldVersion: string
     newVersion: string
   }> {
-    const newVersion = JSON.parse(oldPkgJson)['version']
+    let newVersion: string
+    if (rl) {
+      console.log('Current version:', JSON.parse(oldPkgJson)['version'])
+      newVersion = await question(rl, 'New version: ')
+      if (!/^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/.test(newVersion)) {
+        throw 'Invalid version: ' + newVersion
+      }
+    } else {
+      newVersion = JSON.parse(oldPkgJson)['version']
+    }
+
     const packageName = JSON.parse(oldPkgJson)['name']
 
     const cerr = JSON.parse(
@@ -172,12 +174,13 @@ export async function publish(
         newVersion,
       }
     }
-    const oldVersion =
+    const oldVersion = (
       runner.cmdOut('npm', [
         'show',
         packageName + '@' + extractTag(newVersion),
         'version',
       ]) || runner.cmdOut('npm', ['show', packageName, 'version'])
+    ).trim()
     return { oldVersion, newVersion }
   }
 
@@ -223,7 +226,7 @@ function patchVersion(
   if (oldParsed['version'] === newVersion) return oldPackageJson
 
   const newPkgJson = oldPackageJson.replace(
-    `"version": ${JSON.stringify(oldVersion)}`,
+    `"version": ${JSON.stringify(oldParsed['version'])}`,
     `"version": ${JSON.stringify(newVersion)}`,
   )
 
