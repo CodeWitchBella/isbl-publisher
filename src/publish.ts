@@ -57,9 +57,7 @@ export async function publish(
     if (taglist) {
       throw `Git tag ${tag} already exists`
     }
-    const lastTag =
-      runner.cmdOut('git', ['tag', '-l']).trim() &&
-      runner.cmdOut('git', ['describe', '--tags', '--abbrev=0']).trim()
+    const lastTag = getLastTag(oldVersion)
 
     const newPkgJson = patchVersion(oldPkgJson, oldVersion, newVersion)
 
@@ -181,6 +179,27 @@ export async function publish(
         'version',
       ]) || runner.cmdOut('npm', ['show', packageName, 'version'])
     return { oldVersion, newVersion }
+  }
+
+  function getLastTag(oldVersion: string) {
+    if (!runner.cmdOut('git', ['tag', '-l']).trim()) {
+      // no tags
+      return null
+    }
+    const oldTag = 'v' + oldVersion
+    if (tagExists(oldTag)) {
+      return oldTag
+    }
+    return runner.cmdOut('git', ['describe', '--tags', '--abbrev=0']).trim()
+  }
+
+  function tagExists(tag: string) {
+    const ref = runner
+      .cmdOut('git', ['rev-parse', tag], {
+        allowErr: true,
+      })
+      .trim()
+    return Boolean(ref) && tag !== ref
   }
 }
 
