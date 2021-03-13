@@ -36,7 +36,7 @@ export async function publish(
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
     let { newVersion, oldVersion } = await getVersions()
-    if (newVersion === oldVersion) {
+    if (newVersion === oldVersion || (!ci && !oldVersion)) {
       if (rl) {
         console.log('Current version:', oldVersion)
         newVersion = await question(rl, 'New version: ')
@@ -149,6 +149,16 @@ export async function publish(
   }> {
     const newVersion = JSON.parse(oldPkgJson)['version']
     const packageName = JSON.parse(oldPkgJson)['name']
+
+    const cerr = JSON.parse(
+      runner.cmdOut('npm', ['show', packageName, '--json'], {
+        allowErr: true,
+      }),
+    )
+    if (cerr?.error?.code === 'E404') {
+      return { oldVersion: '', newVersion }
+    }
+
     const versionInfo = runner.cmdOut('npm', [
       'show',
       packageName + '@' + newVersion,

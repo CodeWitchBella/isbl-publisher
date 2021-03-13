@@ -46,7 +46,11 @@ export function createRunner({
     return res.status === 0
   }
 
-  function cmdOut(c: string, args: readonly string[]) {
+  function cmdOut(
+    c: string,
+    args: readonly string[],
+    { allowErr = false }: { allowErr?: boolean } = {},
+  ) {
     if (verbose) {
       print(c, args)
     }
@@ -55,11 +59,13 @@ export function createRunner({
       stdio: [null, 'pipe', 'pipe'],
       cwd,
     })
-    if (res.stderr) {
-      throw `${c} ${args[0]} because stderr is not empty`
-    }
-    if (res.status !== 0) {
-      throw `${c} ${args[0]} failed`
+    if (!allowErr) {
+      if (res.stderr) {
+        throw `${c} ${args[0]} because stderr is not empty`
+      }
+      if (res.status !== 0) {
+        throw `${c} ${args[0]} failed`
+      }
     }
     return res.stdout
   }
