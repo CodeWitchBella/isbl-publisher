@@ -101,17 +101,6 @@ export async function publish(
     }
     const ref = runner.cmdOut('git', ['rev-parse', 'HEAD'])
 
-    runner.cmd(
-      'yarn',
-      [
-        'publish',
-        '--non-interactive',
-        '--no-git-tag-version',
-        isPackageDefinitelyPublic ? ['--access', 'public'] : [],
-        npmtag ? ['--tag', npmtag] : [],
-      ].flat(),
-    )
-
     await createRelease({
       runner,
       info,
@@ -123,6 +112,17 @@ export async function publish(
         ref,
       },
     })
+
+    runner.cmd(
+      'yarn',
+      [
+        'publish',
+        '--non-interactive',
+        '--no-git-tag-version',
+        isPackageDefinitelyPublic ? ['--access', 'public'] : [],
+        npmtag ? ['--tag', npmtag] : [],
+      ].flat(),
+    )
   } finally {
     rl?.close()
   }
