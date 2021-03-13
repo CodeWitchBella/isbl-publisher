@@ -6,11 +6,13 @@ import('./dist/publisher.es.js')
       process.exit(0)
     },
     (e) => {
+      let code = 1
       if (e.expected) {
         console.error(e.message)
+        if (e.code) code = e.code
       } else {
         console.error(e)
       }
-      process.exit(1)
+      process.exit(code)
     },
   )

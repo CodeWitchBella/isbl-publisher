@@ -46,7 +46,7 @@ export async function publish(
       } else if (!ci) {
         throw new Error('rl is falsy, but ci is falsy too!?')
       } else {
-        throw 'Old version and new version are the same'
+        throw expectedError('Old version and new version are the same', 2)
       }
     }
 
