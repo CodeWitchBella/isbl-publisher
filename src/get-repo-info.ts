@@ -10,10 +10,12 @@ async function readGitlabToken({
 }: {
   tokenFile: string | undefined
   env: typeof process.env
-}): Promise<string> {
+}): Promise<{ token: string; header: string }> {
   let token: string | null = null
   if (env['CI_JOB_TOKEN']) {
-    token = env['CI_JOB_TOKEN']
+    token = env['CI_JOB_TOKEN'].trim()
+    // https://forum.gitlab.com/t/ci-job-token-for-releases/39271/3
+    return { token, header: 'JOB-TOKEN' }
   } else if (!tokenFile) {
     throw 'You must specify token file as first argument for gitlab repos.'
   } else {
@@ -28,7 +30,7 @@ async function readGitlabToken({
       throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
     }
   }
-  return token
+  return { token, header: 'PRIVATE-TOKEN' }
 }
 
 export async function getRepoInfo({
@@ -50,7 +52,7 @@ export async function getRepoInfo({
 
     const headers = {
       'Content-Type': 'application/json',
-      'PRIVATE-TOKEN': token,
+      [token.header]: token.token,
     }
     const projectId = await getGitlabProjectId(env, ci, headers)
 
