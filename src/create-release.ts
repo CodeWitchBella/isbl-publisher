@@ -51,6 +51,9 @@ export async function createRelease({
       })
       const json = await res.json()
       if (!json['tag_name']) {
+        if (runner.verbose) {
+          console.log(json)
+        }
         throw 'Failed to create release'
       }
     }
