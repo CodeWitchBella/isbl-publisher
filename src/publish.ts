@@ -19,7 +19,7 @@ export async function publish(
   })
 
   const dirty = runner.cmdOut('git', ['status', '--porcelain'])
-  if (dirty && !argv.includes('--allow-dirty')) {
+  if (dirty && !argv.includes('--allow-dirty') && !ci) {
     throw 'You have uncommited changes... Commit your changes first'
   }
 
