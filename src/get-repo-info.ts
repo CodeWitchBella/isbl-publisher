@@ -34,9 +34,11 @@ async function readGitlabToken({
 export async function getRepoInfo({
   tokenFile,
   env,
+  ci,
 }: {
   tokenFile: string | undefined
   env: typeof process.env
+  ci: boolean
 }) {
   const repoUrl = getRepoUrl(env)
   if (!repoUrl) throw new Error('No repoUrl')
@@ -50,18 +52,13 @@ export async function getRepoInfo({
       'Content-Type': 'application/json',
       'PRIVATE-TOKEN': token,
     }
-    const path = new URL(repoUrl).pathname.replace(/\.git$/, '').slice(1)
-    const url = apiUrl('/api/v4/projects/' + encodeURIComponent(path))
-    const res = await (await fetch(url, { headers })).json()
-    const id = res['id']
-    if (!id) {
-      throw 'Project not found'
-    }
+    const projectId = await getGitlabProjectId(env, ci, headers)
+
     return {
       github: false,
       token,
-      id,
-      apiBase: apiUrl('/api/v4/projects/' + id),
+      id: projectId,
+      apiBase: apiUrl('/api/v4/projects/' + projectId),
       headers,
     }
   } else {
@@ -77,6 +74,25 @@ export async function getRepoInfo({
     url.search = ''
     url.pathname = path
     return url.toString()
+  }
+
+  async function getGitlabProjectId(
+    env: typeof process.env,
+    ci: boolean,
+    headers: any,
+  ) {
+    if (ci) {
+      return env['CI_PROJECT_ID']
+    } else {
+      const path = new URL(repoUrl).pathname.replace(/\.git$/, '').slice(1)
+      const url = apiUrl('/api/v4/projects/' + encodeURIComponent(path))
+      const res = await (await fetch(url, { headers })).json()
+      const id = res['id']
+      if (!id) {
+        throw 'Project not found'
+      }
+      return id
+    }
   }
 }
 
