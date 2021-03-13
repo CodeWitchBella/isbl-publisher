@@ -41,9 +41,10 @@ export async function createRelease({
       description: args.body,
       ref: args.ref,
     }
-    if (runner.dryRun) {
-      console.log('POSTing release ', body)
-    } else {
+    if (runner.dryRun || runner.verbose) {
+      console.log('POSTing release ', info.apiBase + '/releases', body)
+    }
+    if (!runner.dryRun) {
       const res = await fetch(info.apiBase + '/releases', {
         headers: info.headers,
         method: 'POST',
