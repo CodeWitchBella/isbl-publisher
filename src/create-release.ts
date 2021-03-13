@@ -17,6 +17,7 @@ export async function createRelease({
     title: string
     body: string
     prerelease: boolean
+    ref?: string
   }
 }) {
   if (info.github) {
@@ -26,6 +27,7 @@ export async function createRelease({
       body: args.body,
       prerelease: args.prerelease + '',
     })
+    if (args.ref) searchParams.set('target', args.ref)
     const url = info.repo + '/releases/new?' + searchParams.toString()
     if (runner.cmdCheck('which', ['open'])) {
       runner.cmd('open', [url])
@@ -37,6 +39,7 @@ export async function createRelease({
       tag_name: args.tag,
       name: args.title,
       description: args.body,
+      ref: args.ref,
     }
     if (runner.dryRun) {
       console.log('POSTing release ', body)

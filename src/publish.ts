@@ -1,17 +1,17 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as readline from 'readline'
-import fetch from 'node-fetch'
-import { URL, URLSearchParams } from 'url'
 import { getRepoInfo } from './get-repo-info'
 import { createRunner } from './run-command'
 import { createRelease } from './create-release'
+import { expectedError } from './expected-error'
 
 export async function publish(
   argv: readonly string[],
   env: typeof process.env,
   workdir: string,
 ) {
+  const ci = Boolean(argv.includes('--ci') || process.env['CI'])
   const runner = createRunner({
     dryRun: argv.includes('--dry-run'),
     env,
@@ -28,14 +28,25 @@ export async function publish(
   const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
   const info = await getRepoInfo({ tokenFile: argv[0], env })
+  if (info.github && ci) {
+    throw expectedError('CI is only supported for gitlab (for now)')
+  }
 
-  const rl = readline.createInterface(process.stdin, process.stdout)
+  const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
-    const oldVersion = JSON.parse(oldPkgJson)['version']
-    console.log('Current version:', oldVersion)
-    const newVersion = await question(rl, 'New version: ')
-    if (!/^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/.test(newVersion)) {
-      throw 'Invalid version: ' + newVersion
+    let { newVersion, oldVersion } = await getVersions()
+    if (newVersion === oldVersion) {
+      if (rl) {
+        console.log('Current version:', oldVersion)
+        newVersion = await question(rl, 'New version: ')
+        if (!/^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/.test(newVersion)) {
+          throw 'Invalid version: ' + newVersion
+        }
+      } else if (!ci) {
+        throw new Error('rl is falsy, but ci is falsy too!?')
+      } else {
+        throw 'Old version and new version are the same'
+      }
     }
 
     const tag = `v${newVersion}`
@@ -49,16 +60,9 @@ export async function publish(
       runner.cmdOut('git', ['tag', '-l']).trim() &&
       runner.cmdOut('git', ['describe', '--tags', '--abbrev=0']).trim()
 
-    const newPkgJson = oldPkgJson.replace(
-      `"version": ${JSON.stringify(oldVersion)}`,
-      `"version": ${JSON.stringify(newVersion)}`,
-    )
+    const newPkgJson = patchVersion(oldPkgJson, oldVersion, newVersion)
 
-    if (newPkgJson === oldPkgJson) {
-      throw 'Cannot patch package.json'
-    }
-
-    const npmtag = newVersion.split('-')[1]?.replace(/[^a-z]/g, '') || 'latest'
+    const npmtag = extractTag(newVersion)
     const prerelease = npmtag !== 'latest'
 
     console.log('Creating release')
@@ -79,29 +83,32 @@ export async function publish(
       .join('\n')
     console.log('Dry run:', runner.dryRun)
     console.log(
+      'Patching package.json and creating commit:',
+      oldPkgJson !== newPkgJson,
+    )
+    console.log(
       'Changelog (you can edit this via',
       info.github ? 'github' : 'gitlab',
       'later):',
     )
     console.log(changelog)
 
-    const res = await question(rl, 'Is this okay? [y/N] ')
-    rl.close()
-    if (res !== 'y') {
+    const res = rl ? await question(rl, 'Is this okay? [y/N] ') : 'N'
+    rl?.close()
+    if (!ci && res !== 'y') {
       throw 'stopping.'
     }
 
-    if (runner.dryRun) {
-      console.log('Writing new package json with version changed')
-    } else {
-      fs.writeFileSync(pkgJsonFile, newPkgJson, 'utf-8')
+    if (oldPkgJson !== newPkgJson) {
+      if (runner.dryRun) {
+        console.log('Writing new package json with version changed')
+      } else {
+        fs.writeFileSync(pkgJsonFile, newPkgJson, 'utf-8')
+      }
+      runner.cmd('git', ['commit', '-am', name])
+      runner.cmd('git', ['push'])
     }
-
-    runner.cmd('git', ['commit', '-am', name])
-    runner.cmd('git', ['push'])
-
-    runner.cmd('git', ['tag', '-a', tag, '-m', name])
-    runner.cmd('git', ['push', 'origin', tag])
+    const ref = runner.cmdOut('git', ['rev-parse', 'HEAD'])
 
     await createRelease({
       runner,
@@ -111,6 +118,7 @@ export async function publish(
         tag,
         title: name,
         prerelease,
+        ref,
       },
     })
 
@@ -125,12 +133,63 @@ export async function publish(
       ].flat(),
     )
   } finally {
-    rl.close()
+    rl?.close()
   }
 
   function question(rl: readline.Interface, q: string) {
     return new Promise<string>((resolve) => {
       rl.question(q, resolve)
     })
+  }
+
+  async function getVersions(): Promise<{
+    oldVersion: string
+    newVersion: string
+  }> {
+    const newVersion = JSON.parse(oldPkgJson)['version']
+    const packageName = JSON.parse(oldPkgJson)['name']
+    const versionInfo = runner.cmdOut('npm', [
+      'show',
+      packageName + '@' + newVersion,
+      'version',
+    ])
+
+    // newVersion exits
+    if (versionInfo) {
+      return {
+        oldVersion: newVersion,
+        newVersion,
+      }
+    }
+    const oldVersion =
+      runner.cmdOut('npm', [
+        'show',
+        packageName + '@' + extractTag(newVersion),
+        'version',
+      ]) || runner.cmdOut('npm', ['show', packageName, 'version'])
+    return { oldVersion, newVersion }
+  }
+
+  function extractTag(version: string) {
+    return version.split('-')[1]?.replace(/[^a-z]/g, '') || 'latest'
+  }
+
+  function patchVersion(
+    oldPackageJson: string,
+    oldVersion: string,
+    newVersion: string,
+  ) {
+    if (oldVersion === newVersion) return oldPackageJson
+
+    const newPkgJson = oldPkgJson.replace(
+      `"version": ${JSON.stringify(oldVersion)}`,
+      `"version": ${JSON.stringify(newVersion)}`,
+    )
+
+    if (newPkgJson === oldPkgJson) {
+      throw 'Cannot patch package.json'
+    }
+
+    return newPkgJson
   }
 }
