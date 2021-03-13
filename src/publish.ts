@@ -72,7 +72,9 @@ export async function publish(
     console.log('  lastTag:', lastTag || '<no tags found>')
     console.log('  npmtag:', npmtag)
     console.log('  prerelease:', prerelease)
-    if (dirty) console.log('Creating commit with message:', name)
+    if (oldPkgJson !== newPkgJson) {
+      console.log('Creating commit with message:', name)
+    }
     const changelog = runner
       .cmdOut(
         'git',
