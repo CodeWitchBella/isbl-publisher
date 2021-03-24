@@ -1,6 +1,6 @@
 {
   "name": "@isbl/publisher",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Simplifies creating git(lab|hub) releases and publishes to npm",
   "main": "index.js",
   "repository": {
