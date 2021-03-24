@@ -45,7 +45,7 @@ export async function publish(
 
     const taglist = runner.cmdOut('git', ['tag', '-l', tag])
     if (taglist) {
-      throw `Git tag ${tag} already exists`
+      throw expectedError(`Git tag ${tag} already exists`, ci ? 0 : 1)
     }
     const lastTag = getLastTag(oldVersion)
 
