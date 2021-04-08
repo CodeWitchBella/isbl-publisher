@@ -36,7 +36,7 @@ export async function publish(
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
     let { newVersion, oldVersion } = await getVersions(rl)
-    if (newVersion === oldVersion || (!ci && !oldVersion)) {
+    if (newVersion === oldVersion) {
       throw expectedError('Old version and new version are the same', 0)
     }
 
