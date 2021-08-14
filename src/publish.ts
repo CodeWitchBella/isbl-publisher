@@ -19,9 +19,11 @@ export async function publish(
     verbose: argv.includes('--verbose'),
   })
 
-  const dirty = runner.cmdOut('git', ['status', '--porcelain'])
-  if (dirty && !argv.includes('--allow-dirty') && !ci) {
-    throw 'You have uncommited changes... Commit your changes first'
+  if (!ci && !argv.includes('--allow-dirty')) {
+    const dirty = runner.cmdOut('git', ['status', '--porcelain'])
+    if (dirty) {
+      throw 'You have uncommited changes... Commit your changes first'
+    }
   }
 
   const pkgJsonFile = path.join(workdir, 'package.json')
