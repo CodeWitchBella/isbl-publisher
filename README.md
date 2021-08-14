@@ -1,15 +1,15 @@
 # @isbl/publisher
 
-[![MIT License](https://img.shields.io/npm/l/@isbl/publisher?style=for-the-badge)](https://github.com/CodeWitchBella/npm-publisher/blob/main/LICENSE)
+[![MIT License](https://img.shields.io/npm/l/@isbl/publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/LICENSE)
 [![npm](https://img.shields.io/npm/v/@isbl/publisher?style=for-the-badge)](https://www.npmjs.com/package/@isbl/publisher)
-[![dependencies](https://img.shields.io/david/CodeWitchBella/npm-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/npm-publisher/blob/main/package.json)
-![GitHub last commit](https://img.shields.io/github/last-commit/CodeWitchBella/npm-publisher?style=for-the-badge)
-[![GitHub Release Date](https://img.shields.io/github/release-date/CodeWitchBella/npm-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/npm-publisher/releases)
+[![dependencies](https://img.shields.io/david/CodeWitchBella/isbl-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/package.json)
+![GitHub last commit](https://img.shields.io/github/last-commit/CodeWitchBella/isbl-publisher?style=for-the-badge)
+[![GitHub Release Date](https://img.shields.io/github/release-date/CodeWitchBella/isbl-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/releases)
 
 Automates release process. Creates github releases from commit messages and
 attaches correct labels. Works both with self-hosted gitlab instances and github.com.
 
-You can see it in action on [release](https://github.com/CodeWitchBella/npm-publisher/releases)
+You can see it in action on [release](https://github.com/CodeWitchBella/isbl-publisher/releases)
 of this package. It currently assumes that you use yarn classic, but it shouldn't
 be difficult to adjust for other package managers too.
 
@@ -27,7 +27,7 @@ add to your scripts in `package.json`
 {
   "repository": {
     "type": "git",
-    "url": "https://github.com/CodeWitchBella/npm-publisher.git"
+    "url": "https://github.com/CodeWitchBella/isbl-publisher.git"
   },
   "scripts": {
     "prepublishOnly": "isbl-publisher prepublishOnly",

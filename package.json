@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/CodeWitchBella/npm-publisher.git"
+    "url": "https://github.com/CodeWitchBella/isbl-publisher.git"
   },
   "author": "Isabella Skořepová <isabella@skorepova.info>",
   "license": "MIT",
