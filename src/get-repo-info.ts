@@ -57,7 +57,7 @@ export async function getRepoInfo({
     const projectId = await getGitlabProjectId(env, ci, headers)
 
     return {
-      github: false,
+      github: false as const,
       token,
       id: projectId,
       apiBase: gitlabApiUrl('/api/v4/projects/' + projectId),
@@ -67,8 +67,9 @@ export async function getRepoInfo({
   } else {
     const repo = repoUrl.replace(/\.git$/, '')
     return {
-      github: true,
+      github: true as const,
       repo,
+      bearerToken: env['GITHUB_TOKEN'],
       apiBase: 'https://api.github.com/repos' + new URL(repo).pathname,
       ci,
     }

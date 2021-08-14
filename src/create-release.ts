@@ -23,11 +23,12 @@ export async function createRelease({
 }) {
   if (info.github) {
     if (info.ci) {
-      const arg = {
+      const arg = (bearerToken: string) => ({
         method: 'POST',
         headers: {
           Accept: 'application/vnd.github.v3+json',
           "User-Agent": "npm:@isbl/publisher",
+          Authorization: `Bearer ${bearerToken}`,
         },
         body: JSON.stringify({
           tag_name: args.tag,
@@ -37,11 +38,15 @@ export async function createRelease({
           prerelease: args.prerelease,
           target_commitish: args.ref,
         }),
+      })
+      if (runner.dryRun || runner.verbose) {
+        console.log('fetch', info.apiBase + '/releases', arg('$GITHUB_TOKEN'))
       }
-      if (runner.dryRun) {
-        console.log('fetch', info.apiBase + '/releases', arg)
-      } else {
-        await fetch(info.apiBase + '/releases', arg)
+      if (!info.bearerToken) {
+        throw 'Missing GITHUB_TOKEN'
+      }
+      if (!runner.dryRun) {
+        await fetch(info.apiBase + '/releases', arg(info.bearerToken))
       }
     } else {
       const searchParams = new URLSearchParams({
