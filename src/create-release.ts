@@ -18,21 +18,45 @@ export async function createRelease({
     body: string
     prerelease: boolean
     ref?: string
+    draft?: boolean
   }
 }) {
   if (info.github) {
-    const searchParams = new URLSearchParams({
-      tag: args.tag,
-      title: args.title,
-      body: args.body,
-      prerelease: args.prerelease + '',
-    })
-    if (args.ref) searchParams.set('target', args.ref)
-    const url = info.repo + '/releases/new?' + searchParams.toString()
-    if (runner.cmdCheck('which', ['open'])) {
-      runner.cmd('open', [url])
+    if (info.ci) {
+      const arg = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          "User-Agent": "npm:@isbl/publisher",
+        },
+        body: JSON.stringify({
+          tag_name: args.tag,
+          name: args.title,
+          body: args.body,
+          draft: args.draft ?? true,
+          prerelease: args.prerelease,
+          target_commitish: args.ref,
+        }),
+      }
+      if (runner.dryRun) {
+        console.log('fetch', info.apiBase + '/releases', arg)
+      } else {
+        await fetch(info.apiBase + '/releases', arg)
+      }
     } else {
-      runner.cmd('xdg-open', [url])
+      const searchParams = new URLSearchParams({
+        tag: args.tag,
+        title: args.title,
+        body: args.body,
+        prerelease: args.prerelease + '',
+      })
+      if (args.ref) searchParams.set('target', args.ref)
+      const url = info.repo + '/releases/new?' + searchParams.toString()
+      if (runner.cmdCheck('which', ['open'])) {
+        runner.cmd('open', [url])
+      } else {
+        runner.cmd('xdg-open', [url])
+      }
     }
   } else {
     const body = {

@@ -31,8 +31,8 @@ export async function publish(
   const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
   const info = await getRepoInfo({ tokenFile: argv[0], env, ci })
-  if (info.github && ci) {
-    throw expectedError('CI is only supported for gitlab (for now)')
+  if (runner.verbose) {
+    console.log('info', info)
   }
 
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
@@ -112,6 +112,7 @@ export async function publish(
         title: name,
         prerelease,
         ref,
+        draft: !argv.includes('--no-draft'),
       },
     })
 

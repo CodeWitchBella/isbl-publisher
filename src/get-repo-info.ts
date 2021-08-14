@@ -60,17 +60,21 @@ export async function getRepoInfo({
       github: false,
       token,
       id: projectId,
-      apiBase: apiUrl('/api/v4/projects/' + projectId),
+      apiBase: gitlabApiUrl('/api/v4/projects/' + projectId),
       headers,
+      ci,
     }
   } else {
+    const repo = repoUrl.replace(/\.git$/, '')
     return {
       github: true,
-      repo: repoUrl.replace(/\.git$/, ''),
+      repo,
+      apiBase: 'https://api.github.com/repos' + new URL(repo).pathname,
+      ci,
     }
   }
 
-  function apiUrl(path: string) {
+  function gitlabApiUrl(path: string) {
     if (!repoUrl) throw new Error('No repoUrl')
     const url = new URL(repoUrl)
     url.search = ''
@@ -87,7 +91,7 @@ export async function getRepoInfo({
       return env['CI_PROJECT_ID']
     } else {
       const path = new URL(repoUrl).pathname.replace(/\.git$/, '').slice(1)
-      const url = apiUrl('/api/v4/projects/' + encodeURIComponent(path))
+      const url = gitlabApiUrl('/api/v4/projects/' + encodeURIComponent(path))
       const res = await (await fetch(url, { headers })).json()
       const id = res['id']
       if (!id) {
