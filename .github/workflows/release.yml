@@ -1,4 +1,3 @@
-
 name: release
 on:
   push:
@@ -18,7 +17,7 @@ jobs:
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
-      - run: yarn publish:npm --verbose
+      - run: yarn publish:npm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

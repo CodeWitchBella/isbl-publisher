@@ -19,7 +19,17 @@ Automate creating changelogs from commit messages. Also creates git tags and
 publishes to NPM. All either from command line or CI. Works both on GitHub and
 GitLab (.com or self-hosted). See below for setup.
 
-## How to setup (GitHub)
+## How to setup
+
+Run following two commands. It'll ask you a few questions and perform neccessary
+changes. Then commit the result and push it.
+
+```
+yarn add -D @isbl/publisher
+yarn isbl-publisher setup
+```
+
+## Manual setup (GitHub)
 
 (see below for automated version using GitHub actions)
 
@@ -38,8 +48,9 @@ add to your scripts in `package.json`
     "url": "https://github.com/please-replace/with-correct-repo.git"
   },
   "scripts": {
+    "prepare": "yarn build",
     "prepublishOnly": "isbl-publisher prepublishOnly",
-    "publish:npm": "yarn build && isbl-publisher publish"
+    "publish:npm": "isbl-publisher publish"
   }
 }
 ```
@@ -78,7 +89,7 @@ jobs:
 Run `npm token create` to create your npm token. Create repository secret in
 **Settings > Secrets** named `NPM_TOKEN` with contents of your secret.
 
-## How to setup (GitLab)
+## Manual setup (GitLab)
 
 Install from npm
 
@@ -95,14 +106,16 @@ add to your scripts in `package.json`
     "url": "https://gitlab.example.com/group/repo.git"
   },
   "scripts": {
+    "prepare": "yarn build",
     "prepublishOnly": "isbl-publisher prepublishOnly",
-    "publish:npm": "yarn build && isbl-publisher publish $HOME/.gitlab-token"
+    "publish:npm": "isbl-publisher publish $HOME/.gitlab-token"
   }
 }
 ```
 
-You need to generate gitlab token which has API access to create the release via
-API.
+Gitlab token file is only required if you plan to publish manually instead of 
+CI. You need to generate gitlab token which has API access to create the release
+via API.
 
 ## Publishing
 

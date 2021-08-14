@@ -1,5 +1,6 @@
 import { expectedError } from './expected-error'
 import { publish } from './publish'
+import { setup } from './setup'
 
 const commands: {
   [key: string]: (
@@ -15,17 +16,11 @@ const commands: {
       console.log('Run yarn publish:npm instead')
       console.log()
       console.log()
-      throw expectedError('Not correct publish')
+      throw 'Not correct publish'
     }
   },
-  async publish(args, env, workdir) {
-    try {
-      await publish(args, env, workdir)
-    } catch (e) {
-      if (typeof e === 'string') throw expectedError(e)
-      throw e
-    }
-  },
+  publish,
+  setup,
 }
 
 export async function run(
@@ -43,5 +38,10 @@ export async function run(
     console.log('Unknown command', cmd)
     process.exit(1)
   }
-  await runner(argv.slice(1), env, workdir)
+  try {
+    await runner(argv.slice(1), env, workdir)
+  } catch(e) {
+    if (typeof e === 'string') throw expectedError(e)
+    throw e
+  }
 }
