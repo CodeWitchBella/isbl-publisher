@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import open from 'open'
 import { URLSearchParams } from 'url'
 import type { getRepoInfo } from './get-repo-info'
 import type { createRunner } from './run-command'
@@ -57,11 +58,7 @@ export async function createRelease({
       })
       if (args.ref) searchParams.set('target', args.ref)
       const url = info.repo + '/releases/new?' + searchParams.toString()
-      if (runner.cmdCheck('which', ['open'])) {
-        runner.cmd('open', [url])
-      } else {
-        runner.cmd('xdg-open', [url])
-      }
+      await open(url)
     }
   } else {
     const body = {
