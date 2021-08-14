@@ -27,7 +27,7 @@ add to your scripts in `package.json`
 {
   "repository": {
     "type": "git",
-    "url": "https://github.com/CodeWitchBella/isbl-publisher.git"
+    "url": "https://github.com/please-replace/with-correct-repo.git"
   },
   "scripts": {
     "prepublishOnly": "isbl-publisher prepublishOnly",
