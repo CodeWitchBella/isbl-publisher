@@ -72,7 +72,7 @@ export async function publish(
       )
       .trim()
       .split('\n')
-      .map((l) => `- ${l}`)
+      .map((l) => `- ${highlightCommit(l)}`)
       .join('\n')
     console.log('Dry run:', runner.dryRun)
     console.log(
@@ -207,6 +207,14 @@ export async function publish(
       .trim()
     return Boolean(ref) && tag !== ref
   }
+}
+
+function highlightCommit(line: string) {
+  const parts = line.split(' ')
+  if(parts[1]?.endsWith(':')) {
+    parts[1] = `**${parts[1]}**`
+  }
+  return parts.join(' ')
 }
 
 function extractTag(version: string) {
