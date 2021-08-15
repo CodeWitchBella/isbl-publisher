@@ -87,12 +87,17 @@ export async function setup(
   console.log('Changes done\n')
 
   if (github && ci && await yesno('Do you want to setup NPM_TOKEN?', true)) {
-    const generateToken = await yesno('Do you want to generate npm token now?', true)
-    if (generateToken) {
+    let generateToken = false
+    while(true) {
+      generateToken = await yesno('Do you want to generate npm token now?', true)
+      if (!generateToken) break;
+
       console.log('\nRunning `npm token create`')
-      ChildProcess.spawnSync('npm', ['token', 'create'], {
+      const res = ChildProcess.spawnSync('npm', ['token', 'create'], {
         stdio: ['inherit', 'inherit', 'inherit']
       })
+      if (res.status === 0) break
+      else console.log('\nSeems like token creation failed.')
     }
 
     console.log('\nℹ️  Now you have to add the token to your repository secrets section')
