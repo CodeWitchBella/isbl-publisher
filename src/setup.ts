@@ -80,6 +80,7 @@ export async function setup(
   fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n', 'utf-8')
 
   if (github && ci) {
+    fs.mkdirSync('.github/workflows', { recursive:true })
     fs.writeFileSync('.github/workflows/release.yml', workflow)
   }
 
