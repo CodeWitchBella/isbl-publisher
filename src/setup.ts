@@ -4,6 +4,7 @@ import { createRunner } from './run-command'
 import { URL } from 'url'
 import * as ChildProcess from 'child_process'
 import open from 'open'
+import path from 'path'
 
 const welcome = `
 Welcome to @isbl/publisher ❤️
@@ -94,7 +95,8 @@ export async function setup(
 
       console.log('\nRunning `npm token create`')
       const res = ChildProcess.spawnSync('npm', ['token', 'create'], {
-        stdio: ['inherit', 'inherit', 'inherit']
+        stdio: ['inherit', 'inherit', 'inherit'],
+        env: clearEnv(env),
       })
       if (res.status === 0) break
       else console.log('\nSeems like token creation failed.')
@@ -129,6 +131,10 @@ export async function setup(
     })
     return result || defaultValue
   }
+}
+
+function clearEnv(env: typeof process.env) {
+  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('npm_')))
 }
 
 function prepublishOnly(scripts: any) {
