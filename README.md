@@ -1,10 +1,10 @@
 # @isbl/publisher
 
-[![MIT License](https://img.shields.io/npm/l/@isbl/publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/LICENSE)
-[![npm](https://img.shields.io/npm/v/@isbl/publisher?style=for-the-badge)](https://www.npmjs.com/package/@isbl/publisher)
-[![dependencies](https://img.shields.io/david/CodeWitchBella/isbl-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/package.json)
-![GitHub last commit](https://img.shields.io/github/last-commit/CodeWitchBella/isbl-publisher?style=for-the-badge)
-[![GitHub Release Date](https://img.shields.io/github/release-date/CodeWitchBella/isbl-publisher?style=for-the-badge)](https://github.com/CodeWitchBella/isbl-publisher/releases)
+[![MIT License](https://img.shields.io/npm/l/@isbl/publisher?style=flat)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/LICENSE)
+[![npm](https://img.shields.io/npm/v/@isbl/publisher?style=flat)](https://www.npmjs.com/package/@isbl/publisher)
+[![dependencies](https://img.shields.io/librariesio/release/npm/@isbl/publisher?style=flat)](https://github.com/CodeWitchBella/isbl-publisher/blob/main/package.json)
+![](https://img.shields.io/github/last-commit/CodeWitchBella/isbl-publisher?style=flat)
+[![Releases](https://img.shields.io/github/release-date/CodeWitchBella/isbl-publisher?style=flat)](https://github.com/CodeWitchBella/isbl-publisher/releases)
 
 Automates release process. Creates github releases from commit messages and
 attaches correct labels. Works both with self-hosted gitlab instances and github.com.
