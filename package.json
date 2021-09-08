@@ -37,5 +37,8 @@
   "dependencies": {
     "node-fetch": "^2.6.1",
     "open": "^8.2.1"
+  },
+  "engines": {
+    "node": "^14.13.1 || >=16.0.0"
   }
 }
