@@ -4,7 +4,6 @@ import { createRunner } from './run-command'
 import { URL } from 'url'
 import * as ChildProcess from 'child_process'
 import open from 'open'
-import path from 'path'
 
 const welcome = `
 Welcome to @isbl/publisher ❤️
@@ -18,7 +17,10 @@ If at any point you decide that you don't want to continue with the setup you
 can abort by pressing Ctrl-C.
 `
 
-const workflow = `
+export function createGithubWorkflow({ noDraft = false }: { noDraft?: boolean } = {}) {
+  return {
+  file: '.github/workflows/release.yml',
+  contents: `
 name: release
 on:
   push:
@@ -38,11 +40,13 @@ jobs:
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
-      - run: yarn publish:npm
+      - run: yarn isbl-publisher${noDraft ? ' --no-draft' : ''}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
 `.trim() + '\n'
+  }
+}
 
 export async function setup(
   argv: readonly string[],
@@ -77,12 +81,15 @@ export async function setup(
   }
   if (!packageJson.scripts) packageJson.scripts = {}
   packageJson.scripts.prepublishOnly = prepublishOnly(packageJson.scripts)
-  packageJson.scripts['publish:npm'] = `isbl-publisher publish${file  ? ' '+file : ''}${noDraft ? ' --no-draft' : ''}`
+  if (!ci) {
+    packageJson.scripts['publish:npm'] = `isbl-publisher publish${file  ? ' '+file : ''}${noDraft ? ' --no-draft' : ''}`
+  }
   fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n', 'utf-8')
 
   if (github && ci) {
     fs.mkdirSync('.github/workflows', { recursive:true })
-    fs.writeFileSync('.github/workflows/release.yml', workflow)
+    const workflow = createGithubWorkflow({ noDraft })
+    fs.writeFileSync(workflow.file, workflow.contents)
   }
 
   console.log('Changes done\n')

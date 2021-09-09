@@ -2,6 +2,8 @@ import { expectedError } from './expected-error'
 import { publish } from './publish'
 import { setup } from './setup'
 
+export { createGithubWorkflow } from './setup'
+
 const commands: {
   [key: string]: (
     args: readonly string[],
