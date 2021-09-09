@@ -76,7 +76,7 @@ export async function createRelease({
         method: 'POST',
         body: JSON.stringify(body),
       })
-      const json = await res.json()
+      const json: any = await res.json()
       if (!json['tag_name']) {
         if (runner.verbose) {
           console.log(json)

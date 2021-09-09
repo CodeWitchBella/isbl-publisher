@@ -93,7 +93,7 @@ export async function getRepoInfo({
     } else {
       const path = new URL(repoUrl).pathname.replace(/\.git$/, '').slice(1)
       const url = gitlabApiUrl('/api/v4/projects/' + encodeURIComponent(path))
-      const res = await (await fetch(url, { headers })).json()
+      const res: any = await (await fetch(url, { headers })).json()
       const id = res['id']
       if (!id) {
         throw 'Project not found'

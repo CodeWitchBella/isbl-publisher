@@ -15,9 +15,11 @@
   "bin": {
     "isbl-publisher": "./index.js"
   },
+  "exports": "./dist/publisher.esm.js",
+  "types": "dist/publisher.d.ts",
   "type": "module",
   "scripts": {
-    "build": "rm vite.config.ts.js ; vite build",
+    "build": "microbundle src/publisher.ts -f esm --target node",
     "prepublishOnly": "yarn build && ./index.js prepublishOnly",
     "publish:npm": "yarn build && ./index.js publish",
     "publish:npm:nobuild": "./index.js publish",
@@ -26,13 +28,12 @@
   },
   "devDependencies": {
     "@types/node": "^16.9.0",
-    "@types/node-fetch": "^3.0.3",
     "@typescript-eslint/parser": "^4.31.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "microbundle": "^0.13.3",
     "prettier": "^2.4.0",
-    "typescript": "^4.4.2",
-    "vite": "^2.5.6"
+    "typescript": "^4.4.2"
   },
   "dependencies": {
     "node-fetch": "^3.0.0",
