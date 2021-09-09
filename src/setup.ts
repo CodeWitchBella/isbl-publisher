@@ -64,14 +64,13 @@ export async function setup(
   
   const remote = await question('Git repository https url', detectRemote(runner))
   const ci = await yesno('Do you plan to publish using CI?', true)
+  if (!ci) {
+    console.error('Manual publish is no longer supported')
+    return
+  }
   const remoteUrl = new URL(remote)
   const github = remoteUrl.host === 'github.com'
-  const file = !ci && !github
-    && await question(
-      'Where do you want to store gitlab token?',
-      process.env['GITLAB_TOKEN_FILE'] || '$HOME/.gitlab-token'
-      )
-  const noDraft = ci && github && !(await yesno('Do you want to edit automatically generated changelog after each release?', true))
+  const noDraft = github && !(await yesno('Do you want to edit automatically generated changelog after each release?', true))
   
   console.log('\nMaking required changes')
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'))
@@ -81,12 +80,9 @@ export async function setup(
   }
   if (!packageJson.scripts) packageJson.scripts = {}
   packageJson.scripts.prepublishOnly = prepublishOnly(packageJson.scripts)
-  if (!ci) {
-    packageJson.scripts['publish:npm'] = `isbl-publisher publish${file  ? ' '+file : ''}${noDraft ? ' --no-draft' : ''}`
-  }
   fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n', 'utf-8')
 
-  if (github && ci) {
+  if (github) {
     fs.mkdirSync('.github/workflows', { recursive:true })
     const workflow = createGithubWorkflow({ noDraft })
     fs.writeFileSync(workflow.file, workflow.contents)
@@ -94,7 +90,7 @@ export async function setup(
 
   console.log('Changes done\n')
 
-  if (github && ci && await yesno('Do you want to setup NPM_TOKEN?', true)) {
+  if (github && await yesno('Do you want to setup NPM_TOKEN?', true)) {
     let generateToken = false
     while(true) {
       generateToken = await yesno('Do you want to generate npm token now?', true)

@@ -16,8 +16,8 @@ be difficult to adjust for other package managers too.
 ## Why?
 
 Automate creating changelogs from commit messages. Also creates git tags and
-publishes to NPM. All either from command line or CI. Works both on GitHub and
-GitLab (.com or self-hosted). See below for setup.
+publishes to NPM. All automated in CI. Works both on GitHub and GitLab
+(.com or self-hosted). See below for setup.
 
 ## How to setup
 
@@ -49,8 +49,7 @@ add to your scripts in `package.json`
   },
   "scripts": {
     "prepare": "yarn build",
-    "prepublishOnly": "isbl-publisher prepublishOnly",
-    "publish:npm": "isbl-publisher publish"
+    "prepublishOnly": "isbl-publisher prepublishOnly"
   }
 }
 ```
@@ -80,7 +79,7 @@ jobs:
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
-      - run: yarn publish:npm --verbose
+      - run: yarn isbl-publisher publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -107,40 +106,16 @@ add to your scripts in `package.json`
   },
   "scripts": {
     "prepare": "yarn build",
-    "prepublishOnly": "isbl-publisher prepublishOnly",
-    "publish:npm": "isbl-publisher publish $HOME/.gitlab-token"
+    "prepublishOnly": "isbl-publisher prepublishOnly"
   }
 }
 ```
 
-Gitlab token file is only required if you plan to publish manually instead of 
-CI. You need to generate gitlab token which has API access to create the release
-via API.
+the `prepublishOnly` script prevents accidental publishes.
 
 ## Publishing
 
-If you have CI setup, just increment version in your `package.json` and push to
-the main branch.
-
-Otherwise run `yarn publish:npm`. You can also run `yarn publish:npm --dry-run`
-to see commands which would be executed.
-
-Example output
-
-```
-Current version: 0.1.7
-New version: 0.2.0
-Creating release
-  name: Version 0.2.0
-  tag: v0.2.0
-  lastTag: v0.1.7
-  npmtag: latest
-  prerelease: false
-Dry run: false
-Changelog (you can edit this via github later):
-- 9e4a230 automatic npm tags, refactor publish command
-Is this okay? [y/N] _
-```
+Increment version in your `package.json` and push to the main branch.
 
 ## Arguments
 
@@ -148,8 +123,6 @@ Is this okay? [y/N] _
   Useful for debugging and for verification of initial setup.
 - `--verbose` prints extra information while running. Does not print secrets, so
   it's safe to use this in CI. But it makes the output harder to read.
-- `--allow-dirty` overrides dirty repository check. Useful when your publish
-  workflow changes commited files. Dirty check is disabled by default in CI mode.
 - `--ci` simulates running on CI. This is also enabled by CI env variable which
   is set by both gitlab ci and github actions.
 - `--no-draft` github CI mode creates release draft by default to allow you to

@@ -11,7 +11,7 @@ export async function publish(
   env: typeof process.env,
   workdir: string,
 ) {
-  const ci = Boolean(argv.includes('--ci') || process.env['CI'])
+  
   const runner = createRunner({
     dryRun: argv.includes('--dry-run'),
     env,
@@ -19,11 +19,9 @@ export async function publish(
     verbose: argv.includes('--verbose'),
   })
 
-  if (!ci && !argv.includes('--allow-dirty')) {
-    const dirty = runner.cmdOut('git', ['status', '--porcelain'])
-    if (dirty) {
-      throw 'You have uncommited changes... Commit your changes first'
-    }
+  const ci = Boolean(argv.includes('--ci') || process.env['CI'])
+  if (!ci && !runner.dryRun) {
+    throw expectedError('Manual publish is no longer supported', 2)
   }
 
   const pkgJsonFile = path.join(workdir, 'package.json')
@@ -37,7 +35,7 @@ export async function publish(
 
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
-    let { newVersion, oldVersion } = await getVersions(rl)
+    let { newVersion, oldVersion } = await getVersions()
     if (newVersion === oldVersion) {
       throw expectedError('Old version and new version are the same', 0)
     }
@@ -47,11 +45,9 @@ export async function publish(
 
     const taglist = runner.cmdOut('git', ['tag', '-l', tag])
     if (taglist) {
-      throw expectedError(`Git tag ${tag} already exists`, ci ? 0 : 1)
+      throw expectedError(`Git tag ${tag} already exists`, oldVersion === '' ? 0 : 1)
     }
     const lastTag = getLastTag(oldVersion)
-
-    const newPkgJson = patchVersion(oldPkgJson, oldVersion, newVersion)
 
     const npmtag = extractTag(newVersion)
     const prerelease = npmtag !== 'latest'
@@ -62,9 +58,6 @@ export async function publish(
     console.log('  lastTag:', lastTag || '<no tags found>')
     console.log('  npmtag:', npmtag)
     console.log('  prerelease:', prerelease)
-    if (oldPkgJson !== newPkgJson) {
-      console.log('Creating commit with message:', name)
-    }
     const changelog = runner
       .cmdOut(
         'git',
@@ -76,31 +69,12 @@ export async function publish(
       .join('\n')
     console.log('Dry run:', runner.dryRun)
     console.log(
-      'Patching package.json and creating commit:',
-      oldPkgJson !== newPkgJson,
-    )
-    console.log(
       'Changelog (you can edit this via',
       info.github ? 'github' : 'gitlab',
       'later):',
     )
     console.log(changelog)
 
-    const res = rl ? await question(rl, 'Is this okay? [y/N] ') : 'N'
-    rl?.close()
-    if (!ci && res !== 'y') {
-      throw expectedError('stopping.', 0)
-    }
-
-    if (oldPkgJson !== newPkgJson) {
-      if (runner.dryRun) {
-        console.log('Writing new package json with version changed')
-      } else {
-        fs.writeFileSync(pkgJsonFile, newPkgJson, 'utf-8')
-      }
-      runner.cmd('git', ['commit', '-am', name])
-      runner.cmd('git', ['push'])
-    }
     const ref = runner.cmdOut('git', ['rev-parse', 'HEAD']).trim()
 
     await createRelease({
@@ -130,28 +104,11 @@ export async function publish(
     rl?.close()
   }
 
-  function question(rl: readline.Interface, q: string) {
-    return new Promise<string>((resolve) => {
-      rl.question(q, resolve)
-    })
-  }
-
-  async function getVersions(
-    rl: readline.Interface | null,
-  ): Promise<{
+  async function getVersions(): Promise<{
     oldVersion: string
     newVersion: string
   }> {
-    let newVersion: string
-    if (rl) {
-      console.log('Current version:', JSON.parse(oldPkgJson)['version'])
-      newVersion = await question(rl, 'New version: ')
-      if (!/^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/.test(newVersion)) {
-        throw 'Invalid version: ' + newVersion
-      }
-    } else {
-      newVersion = JSON.parse(oldPkgJson)['version']
-    }
+    const newVersion: string = JSON.parse(oldPkgJson)['version']
 
     const packageName = JSON.parse(oldPkgJson)['name']
 
@@ -224,26 +181,4 @@ function extractTag(version: string) {
       ?.split(/[^a-z]/i)?.[0]
       ?.toLowerCase() || 'latest'
   )
-}
-
-function patchVersion(
-  oldPackageJson: string,
-  oldVersion: string,
-  newVersion: string,
-) {
-  if (oldVersion === newVersion) return oldPackageJson
-
-  const oldParsed = JSON.parse(oldPackageJson)
-  if (oldParsed['version'] === newVersion) return oldPackageJson
-
-  const newPkgJson = oldPackageJson.replace(
-    `"version": ${JSON.stringify(oldParsed['version'])}`,
-    `"version": ${JSON.stringify(newVersion)}`,
-  )
-
-  if (newPkgJson === oldPackageJson) {
-    throw 'Cannot patch package.json'
-  }
-
-  return newPkgJson
 }

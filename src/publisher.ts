@@ -15,7 +15,7 @@ const commands: {
     if (!env['CORRECT_PUBLISH']) {
       console.log()
       console.log()
-      console.log('Run yarn publish:npm instead')
+      console.log('Publish via CI instead')
       console.log()
       console.log()
       throw 'Not correct publish'
@@ -30,14 +30,15 @@ export async function run(
   env: typeof process.env,
   workdir: string,
 ) {
-  const cmd = argv[0]
+  const cmd = (argv[0] || '').replace(/-[a-z]/g, l => l.slice(1).toUpperCase())
+  console.log({ cmd })
   if (argv.length < 1 || !cmd) {
     console.log('Available commands:', Object.keys(commands).join(', '))
     return
   }
   const runner = commands[cmd]
   if (!runner) {
-    console.log('Unknown command', cmd)
+    console.log('Unknown command', argv[0])
     process.exit(1)
   }
   try {
