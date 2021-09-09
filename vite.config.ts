@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
 
-const __dirname = path.dirname(import.meta.url.replace('file://', ''))
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const pkg: typeof import('./package.json') = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'),
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(dirname, 'package.json'), 'utf-8'),
 )
 
 // https://vitejs.dev/config/
@@ -13,7 +14,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     lib: {
-      entry: path.resolve(__dirname, 'src/publisher.ts'),
+      entry: path.resolve(dirname, 'src/publisher.ts'),
       formats: ['es'],
     },
     rollupOptions: {
