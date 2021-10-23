@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --enable-source-maps
+#!/usr/bin/env node
 import('./dist/publisher.esm.js')
   .then(({ run }) => run(process.argv.slice(2), process.env, process.cwd()))
   .then(
