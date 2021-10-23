@@ -72,5 +72,31 @@ export function createRunner({
     }
     return res.stdout
   }
-  return { cmd, cmdCheck, cmdOut, dryRun, verbose }
+  /**
+   * npm 7 broke --json output
+   * https://github.com/npm/cli/issues/2740
+   */
+  function npmErrJsonOut(c: string,
+    args: readonly string[],
+  ) {
+    if (verbose) {
+      print(c, args)
+    }
+    const res = cp.spawnSync(c, args, {
+      encoding: 'utf-8',
+      stdio: [null, 'pipe', 'pipe'],
+      cwd,
+    })
+    try {
+      return JSON.parse(res.stdout) // npm 6 produces correct stdout
+    } catch {}
+
+    const start = res.stderr.indexOf('\n{\n')
+    const end = res.stderr.lastIndexOf('\n}\n')
+    if (start < 0 && end < start) {
+      throw new Error('Couldn\'t parse npm json output. Did they break it further?')
+    }
+    return JSON.parse(res.stderr.substring(start+1, end+2))
+  }
+  return { cmd, cmdCheck, cmdOut, npmErrJsonOut, dryRun, verbose }
 }

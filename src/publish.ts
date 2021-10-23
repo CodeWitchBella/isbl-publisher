@@ -112,11 +112,7 @@ export async function publish(
 
     const packageName = JSON.parse(oldPkgJson)['name']
 
-    const cerr = JSON.parse(
-      runner.cmdOut('npm', ['show', packageName, '--json'], {
-        allowErr: true,
-      }),
-    )
+    const cerr = runner.npmErrJsonOut('npm', ['show', packageName, '--json'])
     if (cerr?.error?.code === 'E404') {
       return { oldVersion: '', newVersion }
     }
