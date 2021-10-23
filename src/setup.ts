@@ -17,10 +17,13 @@ If at any point you decide that you don't want to continue with the setup you
 can abort by pressing Ctrl-C.
 `
 
-export function createGithubWorkflow({ noDraft = false }: { noDraft?: boolean } = {}) {
+export function createGithubWorkflow({
+  noDraft = false,
+}: { noDraft?: boolean } = {}) {
   return {
-  file: '.github/workflows/release.yml',
-  contents: `
+    file: '.github/workflows/release.yml',
+    contents:
+      `
 name: release
 on:
   push:
@@ -44,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
-`.trim() + '\n'
+`.trim() + '\n',
   }
 }
 
@@ -61,8 +64,11 @@ export async function setup(
   })
   const rl = readline.createInterface(process.stdin, process.stdout)
   console.log(welcome)
-  
-  const remote = await question('Git repository https url', detectRemote(runner))
+
+  const remote = await question(
+    'Git repository https url',
+    detectRemote(runner),
+  )
   const ci = await yesno('Do you plan to publish using CI?', true)
   if (!ci) {
     console.error('Manual publish is no longer supported')
@@ -70,8 +76,13 @@ export async function setup(
   }
   const remoteUrl = new URL(remote)
   const github = remoteUrl.host === 'github.com'
-  const noDraft = github && !(await yesno('Do you want to edit automatically generated changelog after each release?', true))
-  
+  const noDraft =
+    github &&
+    !(await yesno(
+      'Do you want to edit automatically generated changelog after each release?',
+      true,
+    ))
+
   console.log('\nMaking required changes')
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'))
   packageJson.repository = {
@@ -80,21 +91,28 @@ export async function setup(
   }
   if (!packageJson.scripts) packageJson.scripts = {}
   packageJson.scripts.prepublishOnly = prepublishOnly(packageJson.scripts)
-  fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n', 'utf-8')
+  fs.writeFileSync(
+    'package.json',
+    JSON.stringify(packageJson, null, 2) + '\n',
+    'utf-8',
+  )
 
   if (github) {
-    fs.mkdirSync('.github/workflows', { recursive:true })
+    fs.mkdirSync('.github/workflows', { recursive: true })
     const workflow = createGithubWorkflow({ noDraft })
     fs.writeFileSync(workflow.file, workflow.contents)
   }
 
   console.log('Changes done\n')
 
-  if (github && await yesno('Do you want to setup NPM_TOKEN?', true)) {
+  if (github && (await yesno('Do you want to setup NPM_TOKEN?', true))) {
     let generateToken = false
-    while(true) {
-      generateToken = await yesno('Do you want to generate npm token now?', true)
-      if (!generateToken) break;
+    while (true) {
+      generateToken = await yesno(
+        'Do you want to generate npm token now?',
+        true,
+      )
+      if (!generateToken) break
 
       console.log('\nRunning `npm token create`')
       const res = ChildProcess.spawnSync('npm', ['token', 'create'], {
@@ -105,16 +123,20 @@ export async function setup(
       else console.log('\nSeems like token creation failed.')
     }
 
-    console.log('\nℹ️  Now you have to add the token to your repository secrets section')
+    console.log(
+      '\nℹ️  Now you have to add the token to your repository secrets section',
+    )
     console.log('Secret name: NPM_TOKEN')
-    console.log('Secret value:', generateToken ? 'secret you just generated' : 'your secret')
+    console.log(
+      'Secret value:',
+      generateToken ? 'secret you just generated' : 'your secret',
+    )
     if (await yesno('Open browser?', true)) {
-      await open(remote.replace(/\.git$/, '')  + '/settings/secrets/actions/new')
+      await open(remote.replace(/\.git$/, '') + '/settings/secrets/actions/new')
     }
   }
 
   console.log('We are done 🎉')
-
 
   async function yesno(q: string, defaultValue: boolean) {
     while (true) {
@@ -137,7 +159,9 @@ export async function setup(
 }
 
 function clearEnv(env: typeof process.env) {
-  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('npm_')))
+  return Object.fromEntries(
+    Object.entries(env).filter(([key]) => !key.startsWith('npm_')),
+  )
 }
 
 function prepublishOnly(scripts: any) {
@@ -148,7 +172,7 @@ function prepublishOnly(scripts: any) {
 
 function detectRemote(runner: ReturnType<typeof createRunner>) {
   let someRemote: string = ''
-  for(const line of runner.cmdOut('git', ['remote', '-v']).split('\n')) {
+  for (const line of runner.cmdOut('git', ['remote', '-v']).split('\n')) {
     const rawRemote = line.split(/[\t ]+/g)[1]
     if (!rawRemote) continue
     const remote = httpRemote(rawRemote)
@@ -161,7 +185,8 @@ function detectRemote(runner: ReturnType<typeof createRunner>) {
 }
 
 function httpRemote(remote: string) {
-  if (remote.startsWith('https://') || remote.startsWith('http://')) return remote
+  if (remote.startsWith('https://') || remote.startsWith('http://'))
+    return remote
 
   return 'https://' + remote.replace(/^[^@]*@/, '').replace(':', '/')
 }

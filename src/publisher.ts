@@ -30,7 +30,9 @@ export async function run(
   env: typeof process.env,
   workdir: string,
 ) {
-  const cmd = (argv[0] || '').replace(/-[a-z]/g, l => l.slice(1).toUpperCase())
+  const cmd = (argv[0] || '').replace(/-[a-z]/g, (l) =>
+    l.slice(1).toUpperCase(),
+  )
   console.log({ cmd })
   if (argv.length < 1 || !cmd) {
     console.log('Available commands:', Object.keys(commands).join(', '))
@@ -43,7 +45,7 @@ export async function run(
   }
   try {
     await runner(argv.slice(1), env, workdir)
-  } catch(e) {
+  } catch (e) {
     if (typeof e === 'string') throw expectedError(e)
     throw e
   }

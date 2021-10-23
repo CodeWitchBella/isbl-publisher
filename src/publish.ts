@@ -11,7 +11,6 @@ export async function publish(
   env: typeof process.env,
   workdir: string,
 ) {
-  
   const runner = createRunner({
     dryRun: argv.includes('--dry-run'),
     env,
@@ -45,7 +44,10 @@ export async function publish(
 
     const taglist = runner.cmdOut('git', ['tag', '-l', tag])
     if (taglist) {
-      throw expectedError(`Git tag ${tag} already exists`, oldVersion === '' ? 0 : 1)
+      throw expectedError(
+        `Git tag ${tag} already exists`,
+        oldVersion === '' ? 0 : 1,
+      )
     }
     const lastTag = getLastTag(oldVersion)
 
@@ -164,7 +166,7 @@ export async function publish(
 
 function highlightCommit(line: string) {
   const parts = line.split(' ')
-  if(parts[1]?.endsWith(':')) {
+  if (parts[1]?.endsWith(':')) {
     parts[1] = `**${parts[1]}**`
   }
   return parts.join(' ')

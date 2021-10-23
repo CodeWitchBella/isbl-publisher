@@ -28,7 +28,7 @@ export async function createRelease({
         method: 'POST',
         headers: {
           Accept: 'application/vnd.github.v3+json',
-          "User-Agent": "npm:@isbl/publisher",
+          'User-Agent': 'npm:@isbl/publisher',
           Authorization: `Bearer ${bearerToken}`,
         },
         body: JSON.stringify({
