@@ -27,7 +27,7 @@ export async function publish(
   const oldPkgJson = fs.readFileSync(pkgJsonFile, 'utf8')
   const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
-  const info = await getRepoInfo({ tokenFile: argv[0], env, ci })
+  const info = await getRepoInfo({ tokenFile: argv[0], env, ci, pkgJson: JSON.parse(oldPkgJson) })
   if (runner.verbose) {
     console.log('info', info)
   }

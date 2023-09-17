@@ -37,12 +37,14 @@ export async function getRepoInfo({
   tokenFile,
   env,
   ci,
+  pkgJson
 }: {
   tokenFile: string | undefined
   env: typeof process.env
   ci: boolean
+  pkgJson: { [key:string]: unknown}
 }) {
-  const repoUrl = getRepoUrl(env)
+  const repoUrl = getRepoUrl(env, pkgJson)
   if (!repoUrl) throw new Error('No repoUrl')
 
   const github = new URL(repoUrl).hostname === 'github.com'
@@ -103,8 +105,8 @@ export async function getRepoInfo({
   }
 }
 
-function getRepoUrl(env: typeof process.env) {
-  const repoUrl = env['npm_package_repository_url']
+function getRepoUrl(env: typeof process.env, pkgJson: any) {
+  const repoUrl = env['npm_package_repository_url'] ?? pkgJson.repository?.url
   if (!repoUrl) {
     throw expectedError('You must specify repository.url in your package.json')
   }
