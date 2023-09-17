@@ -42,6 +42,7 @@ jobs:
           node-version: 14
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
+      - run: corepack enable yarn
       - run: yarn
       - run: yarn isbl-publisher${noDraft ? ' --no-draft' : ''}
         env:

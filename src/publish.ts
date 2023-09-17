@@ -92,12 +92,15 @@ export async function publish(
       },
     })
 
+    const version = runner.cmdOut('yarn', ['--version'])
+    const modern = !version.startsWith('1.')
+
     runner.cmd(
       'yarn',
       [
-        'publish',
-        '--non-interactive',
-        '--no-git-tag-version',
+        modern
+          ? ['npm', 'publish']
+          : ['publish', '--non-interactive', '--no-git-tag-version'],
         isPackageDefinitelyPublic ? ['--access', 'public'] : [],
         npmtag ? ['--tag', npmtag] : [],
       ].flat(),
