@@ -10,8 +10,8 @@ Automates release process. Creates github releases from commit messages and
 attaches correct labels. Works both with self-hosted gitlab instances and github.com.
 
 You can see it in action on [release](https://github.com/CodeWitchBella/isbl-publisher/releases)
-of this package. It currently assumes that you use yarn classic, but it shouldn't
-be difficult to adjust for other package managers too.
+of this package. It supports yarn (classic and berry) and pnpm out of the box,
+and it shouldn't be difficult to adjust for other package managers too.
 
 ## Why?
 
@@ -85,8 +85,57 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
+If you use pnpm instead, use this workflow:
+
+```yaml
+name: release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm install
+      - run: pnpm isbl-publisher publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
 Run `npm token create` to create your npm token. Create repository secret in
 **Settings > Secrets** named `NPM_TOKEN` with contents of your secret.
+
+`isbl-publisher publish` picks the package manager based on your project's
+[`devEngines`](https://nodejs.org/api/packages.html#devengines) field, e.g.:
+
+```json
+{
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.9.0",
+      "onFail": "download"
+    }
+  }
+}
+```
+
+The `packageManager` field (Corepack) is **not** used for detection — if it's
+present without a matching `devEngines` entry, publisher prints a warning with
+the equivalent `devEngines` JSON to add. If neither is set, it falls back to
+detecting a `pnpm-lock.yaml` file, then defaults to yarn.
 
 ## Manual setup (GitLab)
 

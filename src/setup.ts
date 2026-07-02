@@ -19,7 +19,28 @@ can abort by pressing Ctrl-C.
 
 export function createGithubWorkflow({
   noDraft = false,
-}: { noDraft?: boolean } = {}) {
+  pnpm = false,
+}: { noDraft?: boolean; pnpm?: boolean } = {}) {
+  const setup = pnpm
+    ? `
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm install
+      - run: pnpm isbl-publisher${noDraft ? ' --no-draft' : ''}`
+    : `
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: yarn
+          registry-url: 'https://registry.npmjs.org'
+      - run: corepack enable yarn
+      - run: yarn
+      - run: yarn isbl-publisher${noDraft ? ' --no-draft' : ''}`
+
   return {
     file: '.github/workflows/release.yml',
     contents:
@@ -34,17 +55,9 @@ jobs:
     name: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 14
-          cache: yarn
-          registry-url: 'https://registry.npmjs.org'
-      - run: corepack enable yarn
-      - run: yarn
-      - run: yarn isbl-publisher${noDraft ? ' --no-draft' : ''}
+          fetch-depth: 0${setup}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
@@ -99,8 +112,9 @@ export async function setup(
   )
 
   if (github) {
+    const pnpm = fs.existsSync('pnpm-lock.yaml')
     fs.mkdirSync('.github/workflows', { recursive: true })
-    const workflow = createGithubWorkflow({ noDraft })
+    const workflow = createGithubWorkflow({ noDraft, pnpm })
     fs.writeFileSync(workflow.file, workflow.contents)
   }
 

@@ -27,7 +27,12 @@ export async function publish(
   const oldPkgJson = fs.readFileSync(pkgJsonFile, 'utf8')
   const isPackageDefinitelyPublic = JSON.parse(oldPkgJson)['private'] === false
 
-  const info = await getRepoInfo({ tokenFile: argv[0], env, ci, pkgJson: JSON.parse(oldPkgJson) })
+  const info = await getRepoInfo({
+    tokenFile: argv[0],
+    env,
+    ci,
+    pkgJson: JSON.parse(oldPkgJson),
+  })
   if (runner.verbose) {
     console.log('info', info)
   }
@@ -92,19 +97,33 @@ export async function publish(
       },
     })
 
-    const version = runner.cmdOut('yarn', ['--version'])
-    const modern = !version.startsWith('1.')
+    const packageManager = detectPackageManager(workdir, JSON.parse(oldPkgJson))
 
-    runner.cmd(
-      'yarn',
-      [
-        modern
-          ? ['npm', 'publish']
-          : ['publish', '--non-interactive', '--no-git-tag-version'],
-        isPackageDefinitelyPublic ? ['--access', 'public'] : [],
-        npmtag ? ['--tag', npmtag] : [],
-      ].flat(),
-    )
+    if (packageManager === 'pnpm') {
+      runner.cmd(
+        'pnpm',
+        [
+          'publish',
+          '--no-git-checks',
+          isPackageDefinitelyPublic ? ['--access', 'public'] : [],
+          npmtag ? ['--tag', npmtag] : [],
+        ].flat(),
+      )
+    } else {
+      const version = runner.cmdOut('yarn', ['--version'])
+      const modern = !version.startsWith('1.')
+
+      runner.cmd(
+        'yarn',
+        [
+          modern
+            ? ['npm', 'publish']
+            : ['publish', '--non-interactive', '--no-git-tag-version'],
+          isPackageDefinitelyPublic ? ['--access', 'public'] : [],
+          npmtag ? ['--tag', npmtag] : [],
+        ].flat(),
+      )
+    }
   } finally {
     rl?.close()
   }
@@ -173,6 +192,56 @@ function highlightCommit(line: string) {
     parts[1] = `**${parts[1]}**`
   }
   return parts.join(' ')
+}
+
+function detectPackageManager(
+  workdir: string,
+  pkgJson: {
+    packageManager?: string
+    devEngines?: {
+      packageManager?: DevEnginesPackageManager | DevEnginesPackageManager[]
+    }
+  },
+): 'pnpm' | 'yarn' {
+  if (pkgJson.packageManager && !pkgJson.devEngines?.packageManager) {
+    const [name, version] = pkgJson.packageManager.split('@')
+    console.warn(
+      [
+        '`packageManager` field is not used for package manager detection.',
+        'Please replace it with `devEngines` instead:',
+        '',
+        JSON.stringify(
+          {
+            devEngines: {
+              packageManager: { name, version, onFail: 'download' },
+            },
+          },
+          null,
+          2,
+        ),
+      ].join('\n'),
+    )
+  }
+
+  const devEngines = pkgJson.devEngines?.packageManager
+  const devEnginesList = Array.isArray(devEngines)
+    ? devEngines
+    : devEngines
+    ? [devEngines]
+    : []
+  const preferred =
+    devEnginesList.find((e) => e.onFail !== 'ignore') ?? devEnginesList[0]
+  if (preferred?.name === 'pnpm') return 'pnpm'
+  if (preferred?.name === 'yarn') return 'yarn'
+
+  if (fs.existsSync(path.join(workdir, 'pnpm-lock.yaml'))) return 'pnpm'
+  return 'yarn'
+}
+
+type DevEnginesPackageManager = {
+  name?: string
+  version?: string
+  onFail?: 'ignore' | 'warn' | 'error'
 }
 
 function extractTag(version: string) {

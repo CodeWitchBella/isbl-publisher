@@ -21,8 +21,8 @@
   "type": "module",
   "scripts": {
     "build": "microbundle src/publisher.ts -f esm --target node",
-    "prepublishOnly": "yarn build && ./index.js prepublishOnly",
-    "publish:npm": "yarn build && ./index.js publish",
+    "prepublishOnly": "pnpm build && ./index.js prepublishOnly",
+    "publish:npm": "pnpm build && ./index.js publish",
     "publish:npm:nobuild": "./index.js publish",
     "lint": "eslint src --ext ts",
     "test": "echo $HOME"
@@ -43,6 +43,12 @@
     "open": "^8.2.1"
   },
   "engines": {
-    "node": "^14.13.1 || >=16.0.0"
+    "node": ">=18.0.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "onFail": "download"
+    }
   }
 }
