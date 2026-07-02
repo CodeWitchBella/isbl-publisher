@@ -128,11 +128,11 @@ export async function publish(argv: readonly string[], env: typeof process.env, 
       return { oldVersion: '', newVersion }
     }
 
-    const versionInfo = runner.cmdOut(showCmd, [
-      showSubcmd,
-      packageName + '@' + newVersion,
-      'version',
-    ])
+    const versionInfo = runner.cmdOut(
+      showCmd,
+      [showSubcmd, packageName + '@' + newVersion, 'version'],
+      { allowErr: true },
+    )
 
     // newVersion exits
     if (versionInfo) {
@@ -142,8 +142,11 @@ export async function publish(argv: readonly string[], env: typeof process.env, 
       }
     }
     const oldVersion = (
-      runner.cmdOut(showCmd, [showSubcmd, packageName + '@' + extractTag(newVersion), 'version']) ||
-      runner.cmdOut(showCmd, [showSubcmd, packageName, 'version'])
+      runner.cmdOut(
+        showCmd,
+        [showSubcmd, packageName + '@' + extractTag(newVersion), 'version'],
+        { allowErr: true },
+      ) || runner.cmdOut(showCmd, [showSubcmd, packageName, 'version'], { allowErr: true })
     ).trim()
     return { oldVersion, newVersion }
   }
