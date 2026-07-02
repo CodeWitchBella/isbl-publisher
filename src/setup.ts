@@ -2,7 +2,6 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 import { createRunner } from './run-command'
 import { URL } from 'url'
-import * as ChildProcess from 'child_process'
 import open from 'open'
 
 const welcome = `
@@ -54,13 +53,15 @@ jobs:
   release:
     name: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0${setup}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: \${{ secrets.NPM_TOKEN }}
 `.trim() + '\n',
   }
 }
@@ -109,26 +110,14 @@ export async function setup(argv: readonly string[], env: typeof process.env, wo
 
   console.log('Changes done\n')
 
-  if (github && (await yesno('Do you want to setup NPM_TOKEN?', true))) {
-    let generateToken = false
-    while (true) {
-      generateToken = await yesno('Do you want to generate npm token now?', true)
-      if (!generateToken) break
-
-      console.log('\nRunning `npm token create`')
-      const res = ChildProcess.spawnSync('npm', ['token', 'create'], {
-        stdio: ['inherit', 'inherit', 'inherit'],
-        env: clearEnv(env),
-      })
-      if (res.status === 0) break
-      else console.log('\nSeems like token creation failed.')
-    }
-
-    console.log('\nℹ️  Now you have to add the token to your repository secrets section')
-    console.log('Secret name: NPM_TOKEN')
-    console.log('Secret value:', generateToken ? 'secret you just generated' : 'your secret')
-    if (await yesno('Open browser?', true)) {
-      await open(remote.replace(/\.git$/, '') + '/settings/secrets/actions/new')
+  if (github) {
+    console.log('\nℹ️  Publishing uses npm trusted publishing (OIDC) — no NPM_TOKEN needed.')
+    console.log(
+      'Make sure the package is configured for trusted publishing on npmjs.com (Settings > Trusted Publishers).',
+    )
+    if (await yesno('Open browser to configure trusted publishing?', true)) {
+      const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'))
+      await open(`https://www.npmjs.com/package/${packageJson.name}/access`)
     }
   }
 
@@ -150,10 +139,6 @@ export async function setup(argv: readonly string[], env: typeof process.env, wo
     })
     return result || defaultValue
   }
-}
-
-function clearEnv(env: typeof process.env) {
-  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('npm_')))
 }
 
 function prepublishOnly(scripts: any) {

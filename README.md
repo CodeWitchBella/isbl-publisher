@@ -69,20 +69,23 @@ jobs:
   release:
     name: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v6
         with:
-          node-version: 14
+          node-version: 26
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
+      - run: corepack enable yarn
       - run: yarn
-      - run: yarn isbl-publisher publish
+      - run: yarn isbl-publisher
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 If you use pnpm instead, use this workflow:
@@ -97,25 +100,29 @@ jobs:
   release:
     name: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v2
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 14
+          node-version: 26
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm install
-      - run: pnpm isbl-publisher publish
+      - run: pnpm isbl-publisher
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-Run `npm token create` to create your npm token. Create repository secret in
-**Settings > Secrets** named `NPM_TOKEN` with contents of your secret.
+Publishing uses npm's [trusted publishing](https://docs.npmjs.com/trusted-publishers)
+(OIDC), so no `NPM_TOKEN` secret is needed. Configure the package as a
+trusted publisher for this GitHub Actions workflow under
+**Settings > Trusted Publishers** on npmjs.com.
 
 `isbl-publisher publish` picks the package manager based on your project's
 [`devEngines`](https://nodejs.org/api/packages.html#devengines) field, e.g.:
