@@ -92,9 +92,7 @@ export function createRunner({
     const start = res.stderr.indexOf('\n{\n')
     const end = res.stderr.lastIndexOf('\n}\n')
     if (start < 0 && end < start) {
-      throw new Error(
-        "Couldn't parse npm json output. Did they break it further?",
-      )
+      throw new Error("Couldn't parse npm json output. Did they break it further?")
     }
     return JSON.parse(res.stderr.substring(start + 1, end + 2))
   }

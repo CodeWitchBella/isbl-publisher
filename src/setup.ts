@@ -65,11 +65,7 @@ jobs:
   }
 }
 
-export async function setup(
-  argv: readonly string[],
-  env: typeof process.env,
-  workdir: string,
-) {
+export async function setup(argv: readonly string[], env: typeof process.env, workdir: string) {
   const runner = createRunner({
     dryRun: false,
     env,
@@ -79,10 +75,7 @@ export async function setup(
   const rl = readline.createInterface(process.stdin, process.stdout)
   console.log(welcome)
 
-  const remote = await question(
-    'Git repository https url',
-    detectRemote(runner),
-  )
+  const remote = await question('Git repository https url', detectRemote(runner))
   const ci = await yesno('Do you plan to publish using CI?', true)
   if (!ci) {
     console.error('Manual publish is no longer supported')
@@ -105,11 +98,7 @@ export async function setup(
   }
   if (!packageJson.scripts) packageJson.scripts = {}
   packageJson.scripts.prepublishOnly = prepublishOnly(packageJson.scripts)
-  fs.writeFileSync(
-    'package.json',
-    JSON.stringify(packageJson, null, 2) + '\n',
-    'utf-8',
-  )
+  fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n', 'utf-8')
 
   if (github) {
     const pnpm = fs.existsSync('pnpm-lock.yaml')
@@ -123,10 +112,7 @@ export async function setup(
   if (github && (await yesno('Do you want to setup NPM_TOKEN?', true))) {
     let generateToken = false
     while (true) {
-      generateToken = await yesno(
-        'Do you want to generate npm token now?',
-        true,
-      )
+      generateToken = await yesno('Do you want to generate npm token now?', true)
       if (!generateToken) break
 
       console.log('\nRunning `npm token create`')
@@ -138,14 +124,9 @@ export async function setup(
       else console.log('\nSeems like token creation failed.')
     }
 
-    console.log(
-      '\nℹ️  Now you have to add the token to your repository secrets section',
-    )
+    console.log('\nℹ️  Now you have to add the token to your repository secrets section')
     console.log('Secret name: NPM_TOKEN')
-    console.log(
-      'Secret value:',
-      generateToken ? 'secret you just generated' : 'your secret',
-    )
+    console.log('Secret value:', generateToken ? 'secret you just generated' : 'your secret')
     if (await yesno('Open browser?', true)) {
       await open(remote.replace(/\.git$/, '') + '/settings/secrets/actions/new')
     }
@@ -155,9 +136,7 @@ export async function setup(
 
   async function yesno(q: string, defaultValue: boolean) {
     while (true) {
-      const res = (
-        await question(q + ' y/n', defaultValue ? 'yes' : 'no')
-      ).toLowerCase()
+      const res = (await question(q + ' y/n', defaultValue ? 'yes' : 'no')).toLowerCase()
       if (res === 'y' || res === 'yes') return true
       if (res === 'n' || res === 'no') return false
       console.log('You must write yes or no')
@@ -174,9 +153,7 @@ export async function setup(
 }
 
 function clearEnv(env: typeof process.env) {
-  return Object.fromEntries(
-    Object.entries(env).filter(([key]) => !key.startsWith('npm_')),
-  )
+  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('npm_')))
 }
 
 function prepublishOnly(scripts: any) {
@@ -200,8 +177,7 @@ function detectRemote(runner: ReturnType<typeof createRunner>) {
 }
 
 function httpRemote(remote: string) {
-  if (remote.startsWith('https://') || remote.startsWith('http://'))
-    return remote
+  if (remote.startsWith('https://') || remote.startsWith('http://')) return remote
 
   return 'https://' + remote.replace(/^[^@]*@/, '').replace(':', '/')
 }

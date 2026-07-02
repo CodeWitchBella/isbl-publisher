@@ -22,7 +22,7 @@ async function readGitlabToken({
     try {
       token = await promisify(fs.readFile)(tokenFile, 'utf-8')
       token = token.trim()
-    } catch (e) {
+    } catch {
       throw 'Cannot read Release API token (reading from ' + tokenFile + ')'
     }
 
@@ -85,11 +85,7 @@ export async function getRepoInfo({
     return url.toString()
   }
 
-  async function getGitlabProjectId(
-    env: typeof process.env,
-    ci: boolean,
-    headers: any,
-  ) {
+  async function getGitlabProjectId(env: typeof process.env, ci: boolean, headers: any) {
     if (ci) {
       return env['CI_PROJECT_ID']
     } else {

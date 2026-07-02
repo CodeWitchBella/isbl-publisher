@@ -29,17 +29,15 @@
     "prepublishOnly": "pnpm build && ./index.js prepublishOnly",
     "publish:npm": "pnpm build && ./index.js publish",
     "publish:npm:nobuild": "./index.js publish",
-    "lint": "eslint src",
+    "lint": "oxlint src",
+    "fmt": "oxfmt src",
     "test": "echo $HOME"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
     "@types/node-fetch": "^2.6.13",
-    "@typescript-eslint/parser": "^8.62.1",
-    "eslint": "^10.6.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
-    "prettier": "^3.9.4",
+    "oxfmt": "^0.57.0",
+    "oxlint": "^1.72.0",
     "tsdown": "^0.22.3",
     "typescript": "^6.0.3"
   },

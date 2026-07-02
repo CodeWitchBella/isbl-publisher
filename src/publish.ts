@@ -6,11 +6,7 @@ import { createRunner } from './run-command'
 import { createRelease } from './create-release'
 import { expectedError } from './expected-error'
 
-export async function publish(
-  argv: readonly string[],
-  env: typeof process.env,
-  workdir: string,
-) {
+export async function publish(argv: readonly string[], env: typeof process.env, workdir: string) {
   const runner = createRunner({
     dryRun: argv.includes('--dry-run'),
     env,
@@ -51,10 +47,7 @@ export async function publish(
 
     const taglist = runner.cmdOut('git', ['tag', '-l', tag])
     if (taglist) {
-      throw expectedError(
-        `Git tag ${tag} already exists`,
-        oldVersion === '' ? 0 : 1,
-      )
+      throw expectedError(`Git tag ${tag} already exists`, oldVersion === '' ? 0 : 1)
     }
     const lastTag = getLastTag(oldVersion)
 
@@ -68,20 +61,13 @@ export async function publish(
     console.log('  npmtag:', npmtag)
     console.log('  prerelease:', prerelease)
     const changelog = runner
-      .cmdOut(
-        'git',
-        ['log', lastTag ? `${lastTag}..HEAD` : '', '--oneline'].filter(Boolean),
-      )
+      .cmdOut('git', ['log', lastTag ? `${lastTag}..HEAD` : '', '--oneline'].filter(Boolean))
       .trim()
       .split('\n')
       .map((l) => `- ${highlightCommit(l)}`)
       .join('\n')
     console.log('Dry run:', runner.dryRun)
-    console.log(
-      'Changelog (you can edit this via',
-      info.github ? 'github' : 'gitlab',
-      'later):',
-    )
+    console.log('Changelog (you can edit this via', info.github ? 'github' : 'gitlab', 'later):')
     console.log(changelog)
 
     const ref = runner.cmdOut('git', ['rev-parse', 'HEAD']).trim()
@@ -116,9 +102,7 @@ export async function publish(
       runner.cmd(
         'yarn',
         [
-          modern
-            ? ['npm', 'publish']
-            : ['publish', '--non-interactive', '--no-git-tag-version'],
+          modern ? ['npm', 'publish'] : ['publish', '--non-interactive', '--no-git-tag-version'],
           isPackageDefinitelyPublic ? ['--access', 'public'] : [],
           npmtag ? ['--tag', npmtag] : [],
         ].flat(),
@@ -139,15 +123,8 @@ export async function publish(
     const showCmd = packageManager === 'pnpm' ? 'pnpm' : 'npm'
     const showSubcmd = packageManager === 'pnpm' ? 'view' : 'show'
 
-    const cerr = runner.npmErrJsonOut(showCmd, [
-      showSubcmd,
-      packageName,
-      '--json',
-    ])
-    if (
-      cerr?.error?.code === 'E404' ||
-      cerr?.error?.code === 'ERR_PNPM_FETCH_404'
-    ) {
+    const cerr = runner.npmErrJsonOut(showCmd, [showSubcmd, packageName, '--json'])
+    if (cerr?.error?.code === 'E404' || cerr?.error?.code === 'ERR_PNPM_FETCH_404') {
       return { oldVersion: '', newVersion }
     }
 
@@ -165,11 +142,8 @@ export async function publish(
       }
     }
     const oldVersion = (
-      runner.cmdOut(showCmd, [
-        showSubcmd,
-        packageName + '@' + extractTag(newVersion),
-        'version',
-      ]) || runner.cmdOut(showCmd, [showSubcmd, packageName, 'version'])
+      runner.cmdOut(showCmd, [showSubcmd, packageName + '@' + extractTag(newVersion), 'version']) ||
+      runner.cmdOut(showCmd, [showSubcmd, packageName, 'version'])
     ).trim()
     return { oldVersion, newVersion }
   }
@@ -234,13 +208,8 @@ function detectPackageManager(
   }
 
   const devEngines = pkgJson.devEngines?.packageManager
-  const devEnginesList = Array.isArray(devEngines)
-    ? devEngines
-    : devEngines
-      ? [devEngines]
-      : []
-  const preferred =
-    devEnginesList.find((e) => e.onFail !== 'ignore') ?? devEnginesList[0]
+  const devEnginesList = Array.isArray(devEngines) ? devEngines : devEngines ? [devEngines] : []
+  const preferred = devEnginesList.find((e) => e.onFail !== 'ignore') ?? devEnginesList[0]
   if (preferred?.name === 'pnpm') return 'pnpm'
   if (preferred?.name === 'yarn') return 'yarn'
 
