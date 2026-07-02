@@ -70,7 +70,7 @@ export function createRunner({
         throw `${c} ${args[0]} failed`
       }
     }
-    return res.stdout
+    return res.status === 0 ? res.stdout : ''
   }
   /**
    * npm 7 broke --json output
