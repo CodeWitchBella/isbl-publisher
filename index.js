@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import('./dist/publisher.esm.js')
+import('./dist/publisher.mjs')
   .then(({ run }) => run(process.argv.slice(2), process.env, process.cwd()))
   .then(
     () => {

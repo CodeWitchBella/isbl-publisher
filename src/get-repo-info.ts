@@ -37,12 +37,12 @@ export async function getRepoInfo({
   tokenFile,
   env,
   ci,
-  pkgJson
+  pkgJson,
 }: {
   tokenFile: string | undefined
   env: typeof process.env
   ci: boolean
-  pkgJson: { [key:string]: unknown}
+  pkgJson: { [key: string]: unknown }
 }) {
   const repoUrl = getRepoUrl(env, pkgJson)
   if (!repoUrl) throw new Error('No repoUrl')

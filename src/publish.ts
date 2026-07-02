@@ -237,8 +237,8 @@ function detectPackageManager(
   const devEnginesList = Array.isArray(devEngines)
     ? devEngines
     : devEngines
-    ? [devEngines]
-    : []
+      ? [devEngines]
+      : []
   const preferred =
     devEnginesList.find((e) => e.onFail !== 'ignore') ?? devEnginesList[0]
   if (preferred?.name === 'pnpm') return 'pnpm'
