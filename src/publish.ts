@@ -37,6 +37,8 @@ export async function publish(
     console.log('info', info)
   }
 
+  const packageManager = detectPackageManager(workdir, JSON.parse(oldPkgJson))
+
   const rl = ci ? null : readline.createInterface(process.stdin, process.stdout)
   try {
     let { newVersion, oldVersion } = await getVersions()
@@ -97,8 +99,6 @@ export async function publish(
       },
     })
 
-    const packageManager = detectPackageManager(workdir, JSON.parse(oldPkgJson))
-
     if (packageManager === 'pnpm') {
       runner.cmd(
         'pnpm',
@@ -136,13 +136,23 @@ export async function publish(
 
     const packageName = JSON.parse(oldPkgJson)['name']
 
-    const cerr = runner.npmErrJsonOut('npm', ['show', packageName, '--json'])
-    if (cerr?.error?.code === 'E404') {
+    const showCmd = packageManager === 'pnpm' ? 'pnpm' : 'npm'
+    const showSubcmd = packageManager === 'pnpm' ? 'view' : 'show'
+
+    const cerr = runner.npmErrJsonOut(showCmd, [
+      showSubcmd,
+      packageName,
+      '--json',
+    ])
+    if (
+      cerr?.error?.code === 'E404' ||
+      cerr?.error?.code === 'ERR_PNPM_FETCH_404'
+    ) {
       return { oldVersion: '', newVersion }
     }
 
-    const versionInfo = runner.cmdOut('npm', [
-      'show',
+    const versionInfo = runner.cmdOut(showCmd, [
+      showSubcmd,
       packageName + '@' + newVersion,
       'version',
     ])
@@ -155,11 +165,11 @@ export async function publish(
       }
     }
     const oldVersion = (
-      runner.cmdOut('npm', [
-        'show',
+      runner.cmdOut(showCmd, [
+        showSubcmd,
         packageName + '@' + extractTag(newVersion),
         'version',
-      ]) || runner.cmdOut('npm', ['show', packageName, 'version'])
+      ]) || runner.cmdOut(showCmd, [showSubcmd, packageName, 'version'])
     ).trim()
     return { oldVersion, newVersion }
   }
